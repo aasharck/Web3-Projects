@@ -1,0 +1,28 @@
+.balance-card{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 40%;
+    text-align: center;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 3.5em;
+    padding: auto;
+
+}
+.card{
+    width: 100%;
+    
+}
+
+.card-header{
+    text-align: left;
+}
+
+.input-group{
+    width: 40%;
+    margin-top:1em;
+    margin-right: auto;
+    margin-left: auto;
+}
