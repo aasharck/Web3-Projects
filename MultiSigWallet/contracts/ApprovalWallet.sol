@@ -64,6 +64,10 @@ contract ApprovalWallet{
         return approvers;
     }
 
+    function getTransfers() external view returns(Transfer[] memory){
+        return transfers;
+    }
+
     receive() external payable{
 
     }
