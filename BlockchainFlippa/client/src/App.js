@@ -1,13 +1,15 @@
-import logo from "./logo.svg";
+import { React, useEffect, useState } from "react";
+import ethers from "ethers";
 import "./App.css";
 import abi from "./utils/contractABI.json";
+import Navbar from "./components/Navbar";
+import Home from "./components/Home";
 
 const App = () => {
-  const contract_address = 0xb50d31eb90eabf833314a828edf19392a427e266;
-  const contractABI = abi.abi;
   return (
-    <div className="App">
-      <h1>Hello</h1>
+    <div>
+      <Navbar />
+      <Home />
     </div>
   );
 };
