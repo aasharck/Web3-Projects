@@ -20,10 +20,12 @@ contract MyContract{
     mapping(address => mapping(uint256 => Listing)) public sellerListings;
     address[] public sellerAddresses;
     mapping(address => address) public buyer;
+    Listing[] public allListings;
     
     receive() external payable {}
     
     function List(uint256 _id, string memory _name, string memory _websiteURL, string memory _description, uint256 _price, uint256 _profitPerMonth, uint256 _siteAge) public {
+        require(sellerListings[msg.sender][_id].id != _id,"The Id is already in use. Please Change ");
         Listing storage newListing = sellerListings[msg.sender][_id];
         newListing.id = _id;
         newListing.name = _name;
@@ -35,6 +37,7 @@ contract MyContract{
         newListing.owner = msg.sender;
         
         sellerAddresses.push(msg.sender);
+        allListings.push(newListing);
     }
     
     function buy(address _sellerAddress, uint256 _id) public payable{
@@ -59,5 +62,7 @@ contract MyContract{
         return address(this).balance;
     }
     
-    
+    function getAllListing() public view returns (Listing[] memory){
+        return allListings;
+    }
 }
