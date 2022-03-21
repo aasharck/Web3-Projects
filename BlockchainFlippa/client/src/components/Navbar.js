@@ -1,6 +1,8 @@
 import { React, useEffect, useState } from "react";
 import ethers from "ethers";
 import "./Navbar.css";
+import { Route, Routes, NavLink, Link } from "react-router-dom";
+
 import abi from "./../utils/contractABI.json";
 
 const Navbar = () => {
@@ -71,19 +73,19 @@ const Navbar = () => {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link active" aria-current="page" href="#">
+                <NavLink exact="true" className="nav-link active" to="/">
                   Home
-                </a>
+                </NavLink>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">
+                <NavLink exact="true" className="nav-link" to="/marketplace">
                   Buy
-                </a>
+                </NavLink>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="#">
+                <NavLink exact="true" className="nav-link" to="/sell">
                   Sell
-                </a>
+                </NavLink>
               </li>
             </ul>
             {currAccount ? (
