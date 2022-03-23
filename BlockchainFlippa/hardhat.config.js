@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -20,10 +21,15 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 module.exports = {
   solidity: "0.8.7",
   networks: {
-    rinkeby: {
+    ropsten: {
       url: process.env.ALCHEMY_API || "",
       accounts:
         process.env.ACCOUNT_KEY !== undefined ? [process.env.ACCOUNT_KEY] : [],
+    },
+  },
+  etherscan: {
+    apiKey: {
+      ropsten: "YN3F6GBMISV6F4MEQQY7JUKFYR5UPKBJ7C",
     },
   },
 };

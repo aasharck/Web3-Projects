@@ -6,8 +6,6 @@ import { Route, Routes, NavLink, Link } from "react-router-dom";
 import abi from "./../utils/contractABI.json";
 
 const Navbar = () => {
-  const contract_address = 0xb50d31eb90eabf833314a828edf19392a427e266;
-  const contractABI = abi.abi;
   let [currAccount, setCurrAccount] = useState("");
 
   useEffect(() => {
