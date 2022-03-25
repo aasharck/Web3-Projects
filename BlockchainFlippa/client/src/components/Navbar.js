@@ -5,47 +5,8 @@ import { Route, Routes, NavLink, Link } from "react-router-dom";
 
 import abi from "./../utils/contractABI.json";
 
-const Navbar = () => {
-  let [currAccount, setCurrAccount] = useState("");
-
-  useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
-
-  const checkIfWalletIsConnected = async () => {
-    try {
-      if (!window.ethereum) {
-        alert("Please install Metamask");
-      } else {
-        const accounts = await window.ethereum.request({
-          method: "eth_accounts",
-        });
-        if (accounts.length != 0) {
-          console.log("Connected to", accounts[0]);
-          setCurrAccount(accounts[0]);
-        } else {
-          console.log("No Authorized accounts found!");
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const connectWallet = async () => {
-    try {
-      if (!window.ethereum) {
-        alert("Please install Metamask");
-      } else {
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        setCurrAccount(accounts[0]);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+const Navbar = (props) => {
+  
 
   return (
     <div>
@@ -86,15 +47,15 @@ const Navbar = () => {
                 </NavLink>
               </li>
             </ul>
-            {currAccount ? (
+            {props.currAccount ? (
               <button className="btn btn-outline-primary btntext" disabled>
-                {currAccount}
+                {props.currAccount}
               </button>
             ) : (
               <button
                 className="btn btn-outline-primary"
                 type="submit"
-                onClick={connectWallet}
+                onClick={props.connectWallet}
               >
                 Connect Wallet
               </button>
