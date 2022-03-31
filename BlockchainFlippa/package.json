@@ -1,0 +1,24 @@
+{
+  "name": "BlockchainFlippa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.0.3",
+    "dotenv": "^16.0.0",
+    "hardhat": "^2.9.1"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^4.0.0-alpha.0",
+    "ethers": "^5.6.0"
+  }
+}
