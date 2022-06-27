@@ -1,6 +1,6 @@
-import { ethers } from "ethers";
-import React, { useEffect, useState } from "react";
-import "./Marketplace.css";
+import { ethers } from 'ethers';
+import React, { Fragment, useEffect, useState } from 'react';
+import './Marketplace.css';
 
 const Marketplace = (props) => {
   let [allListings, setAllListings] = useState([]);
@@ -12,7 +12,7 @@ const Marketplace = (props) => {
   const getAllListings = async () => {
     try {
       if (!window.ethereum) {
-        alert("No Metamask Detected");
+        alert('No Metamask Detected');
       } else {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
@@ -36,6 +36,7 @@ const Marketplace = (props) => {
             purchased: listing.purchased,
             approved: listing.approved,
             owner: listing.owner,
+            buyer: listing.buyer,
           };
         });
         console.log(lisitingArray);
@@ -49,7 +50,7 @@ const Marketplace = (props) => {
   const buyListing = async (_sellerAddress, _id, _price) => {
     try {
       if (!window.ethereum) {
-        alert("No Metamask Detected");
+        alert('No Metamask Detected');
       } else {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
@@ -64,7 +65,7 @@ const Marketplace = (props) => {
         });
         await txn.wait();
         alert(
-          "Awesome! You have bought the listing. The seller will now contact you and will give you the access details. ONLY CLICK THE APPROVE BUTTON ONCE YOU HAVE RECEIVED EVERYTHING FROM THE SELLER"
+          'Awesome! You have bought the listing. The seller will now contact you and will give you the access details. ONLY CLICK THE APPROVE BUTTON ONCE YOU HAVE RECEIVED EVERYTHING FROM THE SELLER'
         );
       }
     } catch (error) {
@@ -73,31 +74,35 @@ const Marketplace = (props) => {
   };
 
   return (
-    <div className="container">
+    <div className='container'>
       <h1>Marketplace</h1>
       {allListings.map((listing, index) => {
         return (
-          <div key={index} className="display-waves shadow">
-            <div>Name: {listing.name}</div>
-            <div>Selling Price: {listing.price.toNumber()}</div>
-            <div>Website URL: {listing.websiteURL}</div>
-            <div>purchased: {listing.purchased.toString()}</div>
-            <div>approved: {listing.approved.toString()}</div>
-            <div>owner: {listing.owner}</div>
-            <button
-              disabled={listing.purchased ? true : false}
-              className="btn btn-danger"
-              onClick={() =>
-                buyListing(
-                  listing.owner,
-                  listing.id.toNumber(),
-                  listing.price.toNumber()
-                )
-              }
-            >
-              Buy This
-            </button>
-          </div>
+          <Fragment key={index}>
+            {listing.approved != true && (
+              <div className='display-waves shadow'>
+                <div>Name: {listing.name}</div>
+                <div>Selling Price: {listing.price.toNumber()}</div>
+                <div>Website URL: {listing.websiteURL}</div>
+                <div>purchased: {listing.purchased.toString()}</div>
+                <div>approved: {listing.approved.toString()}</div>
+                <div>owner: {listing.owner}</div>
+                <button
+                  disabled={listing.purchased ? true : false}
+                  className='btn btn-danger'
+                  onClick={() =>
+                    buyListing(
+                      listing.owner,
+                      listing.id.toNumber(),
+                      listing.price.toNumber()
+                    )
+                  }
+                >
+                  Buy This
+                </button>
+              </div>
+            )}
+          </Fragment>
         );
       })}
     </div>

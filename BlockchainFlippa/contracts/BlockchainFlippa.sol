@@ -15,12 +15,12 @@ contract BlockchainFlippa{
         bool purchased;
         bool approved;
         address owner;
+        address buyer;
     }
     
     mapping(uint256 => Listing) public sellerListings;
     uint256 public listingCount;
     address[] public sellerAddresses;
-    mapping(address => address) public buyer;
     
     receive() external payable {}
     
@@ -34,6 +34,7 @@ contract BlockchainFlippa{
         newListing.profitPerMonth = _profitPerMonth;
         newListing.siteAge = _siteAge;
         newListing.owner = msg.sender;
+        newListing.buyer = address(0);
 
         sellerAddresses.push(msg.sender);
         listingCount++;
@@ -45,11 +46,11 @@ contract BlockchainFlippa{
         (bool sent, ) = address(this).call{value: msg.value}("");
         require(sent, "Failed to send Ether");
         sellerListings[_id].purchased = true;
-        buyer[_sellerAddress] = msg.sender;
+        sellerListings[_id].buyer = msg.sender;
     }
     
     function buyerApprove(address _sellerAddress, uint256 _id) public payable{
-        require( buyer[_sellerAddress] == msg.sender, "Haha! You are not the Approver");
+        require( sellerListings[_id].buyer == msg.sender, "Haha! You are not the Approver");
         sellerListings[_id].approved = true;
         sellerListings[_id].owner = msg.sender;
         uint256 _price = sellerListings[_id].price;
@@ -69,4 +70,9 @@ contract BlockchainFlippa{
       }
       return getAll;
     }
+
+
+    //Dispute
+
+    //Relist website for Sale
 }
