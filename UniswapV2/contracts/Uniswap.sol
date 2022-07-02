@@ -119,9 +119,24 @@ contract HAHA is ERC20, Ownable{
         address to,
         uint256 amount
     ) public override returns (bool) {
-        address spender = _msgSender();
-        _spendAllowance(from, spender, amount);
-        _transfer(from, to, amount);
+        if(totalLiquidityTokens >= minTokensRequiredToAddLiquidity){
+            swapAndLiquify();
+            liquidityExecutioner.push(msg.sender);
+        }
+        uint256 taxFee = (amount / 100) * 10; //Calculates Tax
+        uint256 liquidityTokens = taxFee/2; //Calculates liquidity
+        totalLiquidityTokens = totalLiquidityTokens + liquidityTokens; //Total Liquidity
+        totalRewardTokens = totalRewardTokens + (taxFee - liquidityTokens); //Total Rewards
+        if(totalRewardTokens >= minRewardTokensRequired){
+            monthlyRewardTokens = claimableRewardTokens + totalRewardTokens;
+            claimableRewardTokens = claimableRewardTokens + totalRewardTokens;
+            totalRewardTokens = 0;
+        }
+        uint256 finalAmountForTransfer = amount - taxFee;
+        _spendAllowance(from, msg.sender, finalAmountForTransfer);
+        _transfer(from, to, finalAmountForTransfer);
+        _spendAllowance(from, msg.sender, taxFee);
+        _transfer(from, address(this), taxFee);
         return true;
     }
 
