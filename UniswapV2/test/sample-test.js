@@ -73,17 +73,22 @@ describe('Uniswap', function () {
     console.log("Owner WETH Balance", await wethContract.balanceOf(owner.address))
     console.log("Liquidity Tokens Before", await uni.totalLiquidityTokens());
 
+    //transfer some HAHA Tokens to contract address to provide liquidity
     await uni.transfer(uni.address, ethers.BigNumber.from(1000000).mul(decimals), { from: owner.address });
 
+    //transfer some WETH to contract owner from Whale
     await wethContract.transfer(owner.address, ethers.BigNumber.from(1000).mul(decimals), { from: signer.address });
 //================ADDING LIQUIDITY=====================//
 
   //   //approving the contract to spend the tokens
    await uni.approve(uni.address, 500000000000000, { from: owner.address });
+   //approving the WETH contract to spend tokens
    await wethContract.connect(owner).approve(uni.address, 500000000000000);
     
+
     console.log('WETH that I have ' + await wethContractSigner.balanceOf(owner.address));
 
+    //adding liquidity from Owner's address
     let tx = await uni.addLiquidityTokens(
       uni.address,
       wethContractSigner.address,
