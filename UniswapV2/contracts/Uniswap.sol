@@ -22,13 +22,13 @@ contract HAHA is ERC20, Ownable{
     uint256 public totalRewardTokens;
     uint256 public claimableRewardTokens;
     uint256 public monthlyRewardTokens;
-    uint256 public minRewardTokensRequired = 10000000 * 10**18;
+    uint256 public minRewardTokensRequired = 10000000000 * 10**18;
     uint256 public totalLiquidityTokens;
 
     mapping(address => uint256) public lastClaimTime;
     //(address => uint256) public lastClaimedTokens;
 
-    uint256 public minTokensRequiredToAddLiquidity = 10000000  * 10**18;
+    uint256 public minTokensRequiredToAddLiquidity = 100000  * 10**18;
     //to incentivise the one who executes the swapAndLiquify function
     address[] private liquidityExecutioner;
 //0x70997970C51812dc3A010C7d01b50e0d17dc79C8
@@ -83,37 +83,37 @@ contract HAHA is ERC20, Ownable{
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) public override returns (bool) {
-        if(totalLiquidityTokens >= minTokensRequiredToAddLiquidity){
-            swapAndLiquify();
-            liquidityExecutioner.push(msg.sender);
-        }
-        uint256 taxFee = (amount / 100) * 10; //Calculates Tax
-        uint256 liquidityTokens = taxFee/2; //Calculates liquidity
-        totalLiquidityTokens = totalLiquidityTokens + liquidityTokens; //Total Liquidity
-        totalRewardTokens = totalRewardTokens + (taxFee - liquidityTokens); //Total Rewards
-        if(totalRewardTokens >= minRewardTokensRequired){
-            monthlyRewardTokens = claimableRewardTokens + totalRewardTokens;
-            claimableRewardTokens = claimableRewardTokens + totalRewardTokens;
-            totalRewardTokens = 0;
-        }
-        uint256 finalAmountForTransfer = amount - taxFee;
-        _spendAllowance(from, msg.sender, finalAmountForTransfer);
-        _transfer(from, to, finalAmountForTransfer);
-        _spendAllowance(from, msg.sender, taxFee);
-        _transfer(from, address(this), taxFee);
-        return true;
-    }
+    // function transferFrom(
+    //     address from,
+    //     address to,
+    //     uint256 amount
+    // ) public override returns (bool) {
+    //     if(totalLiquidityTokens >= minTokensRequiredToAddLiquidity){
+    //         swapAndLiquify();
+    //         liquidityExecutioner.push(msg.sender);
+    //     }
+    //     uint256 taxFee = (amount / 100) * 10; //Calculates Tax
+    //     uint256 liquidityTokens = taxFee/2; //Calculates liquidity
+    //     totalLiquidityTokens = totalLiquidityTokens + liquidityTokens; //Total Liquidity
+    //     totalRewardTokens = totalRewardTokens + (taxFee - liquidityTokens); //Total Rewards
+    //     if(totalRewardTokens >= minRewardTokensRequired){
+    //         monthlyRewardTokens = claimableRewardTokens + totalRewardTokens;
+    //         claimableRewardTokens = claimableRewardTokens + totalRewardTokens;
+    //         totalRewardTokens = 0;
+    //     }
+    //     uint256 finalAmountForTransfer = amount - taxFee;
+    //     _spendAllowance(from, msg.sender, finalAmountForTransfer);
+    //     _transfer(from, to, finalAmountForTransfer);
+    //     _spendAllowance(from, msg.sender, taxFee);
+    //     _transfer(from, address(this), taxFee);
+    //     return true;
+    // }
 
     function swapAndLiquify() public{
         //if totalLiquidityTokens is 100
         uint256 firstHalf = totalLiquidityTokens/2; //50
         uint256 secondHalf = totalLiquidityTokens - firstHalf; //50
-        totalLiquidityTokens = 0;
+        
         // Swap the firstHalf to ETH or BSC
         uint256 initialBalance = address(this).balance;
         swapTokensForEth(firstHalf);
@@ -123,7 +123,7 @@ contract HAHA is ERC20, Ownable{
 
         // add liquidity to uniswap
         addLiquidity(secondHalf, newBalance);
-        
+        totalLiquidityTokens = 0;
     }
 
     function swapTokensForEth(uint256 tokenAmount) public {
@@ -133,6 +133,7 @@ contract HAHA is ERC20, Ownable{
         path[1] = uniswapV2Router.WETH();
 
         _approve(address(this), address(uniswapV2Router), tokenAmount);
+
 
         // make the swap
         uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -147,6 +148,7 @@ contract HAHA is ERC20, Ownable{
     function addLiquidity(uint256 tokenAmount, uint256 ethAmount) public {
         // approve token transfer to cover all possible scenarios
         _approve(address(this), address(uniswapV2Router), tokenAmount);
+        
 
         // add the liquidity
         uniswapV2Router.addLiquidityETH{value: ethAmount}(
@@ -173,13 +175,13 @@ contract HAHA is ERC20, Ownable{
         //require(lastClaimTime[msg.sender]+30 >= block.timestamp, "You have already claimed the tokens once in the past 30 days");
         //totalRewardTokens = balanceOf(address(this)) - totalLiquidityTokens;
         lastClaimTime[msg.sender] = block.timestamp;
-        uint256 yourTotalShare = ((balanceOf(msg.sender)* 100)/totalSupply());
-        uint256 yourTokens = (yourTotalShare * monthlyRewardTokens)/100;
+        uint256 yourTotalShare = ((balanceOf(msg.sender)* 10000000000000)/totalSupply());
+        uint256 yourTokens = (yourTotalShare * monthlyRewardTokens)/10000000000000;
         if(claimableRewardTokens < yourTokens){
             yourTokens = claimableRewardTokens;
             monthlyRewardTokens = 0;
         }
-        require(yourTokens > 1000 * 10**18, "You must have atleast 1000 Tokens to Claim your Reward!");
+        require(yourTokens > 100 * 10**18, "You must have atleast 100 Tokens to Claim your Reward!");
         //lastClaimedTokens[msg.sender] = yourTotalShare;
         _transfer(address(this), msg.sender, yourTokens);
         claimableRewardTokens = claimableRewardTokens - yourTokens;
@@ -204,11 +206,13 @@ contract HAHA is ERC20, Ownable{
         uint256 _amountA,
         uint256 _amountB
     ) external {
+
         IERC20(_tokenA).transferFrom(msg.sender, address(this), _amountA);
         IERC20(_tokenB).transferFrom(msg.sender, address(this), _amountB);
 
         IERC20(_tokenA).approve(ROUTER, _amountA);
         IERC20(_tokenB).approve(ROUTER, _amountB);
+        
 
         (uint256 amountA, uint256 amountB, uint256 liquidity) = uniswapV2Router
             .addLiquidity(
@@ -230,6 +234,10 @@ contract HAHA is ERC20, Ownable{
 function getReservesForToken() public pure returns (uint256){
     uint256 a = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D).quote(100, 1000000, 1000000);
     return a;
+
+            //Newly added
+        // IERC20(address(this)).approve(ROUTER, tokenAmount);
+        // IERC20(uniswapV2Router.WETH()).approve(ROUTER, ethAmount);
 }
 
 

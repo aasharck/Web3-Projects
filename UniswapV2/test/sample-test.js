@@ -18,6 +18,8 @@ describe('Token contract', function () {
   let acc3;
   let whaleSigner;
   const decimals = ethers.BigNumber.from(10).pow(18);
+  let hahaTokens;
+  let wethTokens;
 
   beforeEach(async function () {
     // Get the ContractFactory and Signers here.
@@ -50,27 +52,14 @@ describe('Token contract', function () {
       whaleSigner
     );
     wethContractSigner = wethContract.connect(whaleSigner);
-  });
 
-  it('create a token and have balance equal to 1 Quadrillion', async function () {
-    const maxSupply = ethers.BigNumber.from(1000000000000000).mul(decimals);
-    expect(await uni.balanceOf(owner.address)).to.equal(maxSupply);
-  });
-
-  it('A Uniswap token Pair is created', async function () {
-    expect(await uni.uniswapV2Pair()).to.not.equal(
-      ethers.constants.AddressZero
-    );
-  });
-
-  it('Add Liquidity to the Newly created Token', async function () {
     // await uni.transfer(
     //   uni.address,
     //   ethers.BigNumber.from(1000000).mul(decimals),
     //   { from: owner.address }
     // );
-    const hahaTokens = ethers.BigNumber.from(100000).mul(decimals);
-    const wethTokens = ethers.BigNumber.from(100).mul(decimals);
+    hahaTokens = ethers.BigNumber.from(100000).mul(decimals);
+    wethTokens = ethers.BigNumber.from(100).mul(decimals);
 
     //transfer some WETH to contract owner from Whale to provide liquidity
     await wethContract.transfer(owner.address, wethTokens, {
@@ -95,7 +84,12 @@ describe('Token contract', function () {
     );
 
     await tx.wait();
-    console.log(await uni.getReservesForToken());
+  });
+
+  it('A Uniswap token Pair is created', async function () {
+    expect(await uni.uniswapV2Pair()).to.not.equal(
+      ethers.constants.AddressZero
+    );
   });
 
   it('Transfer tokens between accounts', async function () {
@@ -117,11 +111,76 @@ describe('Token contract', function () {
       { from: owner.address }
     );
 
+    expect(await uni.totalLiquidityTokens()).to.equal(
+      ethers.BigNumber.from(50000).mul(decimals)
+    );
+    expect(await uni.totalRewardTokens()).to.equal(
+      ethers.BigNumber.from(50000).mul(decimals)
+    );
+  });
 
-    expect(await uni.totalLiquidityTokens()).to.equal(ethers.BigNumber.from(50000).mul(decimals))
-    expect(await uni.totalRewardTokens()).to.equal(ethers.BigNumber.from(50000).mul(decimals))
+  it('Check if Liquidity is added if it reaches minimum amount', async function () {
+    console.log('My Contract Balance', await uni.balanceOf(uni.address));
+    console.log(await uni.totalLiquidityTokens());
 
+    await uni.transfer(
+      acc1.address,
+      ethers.BigNumber.from(1000000).mul(decimals),
+      { from: owner.address }
+    );
 
+    // expect(await uni.totalLiquidityTokens()).to.equal(
+    //   ethers.BigNumber.from(50000).mul(decimals)
+    // );
+    console.log('My Contract Balance', await uni.balanceOf(uni.address));
+    console.log(await uni.totalLiquidityTokens());
+
+    await uni.transfer(
+      acc2.address,
+      ethers.BigNumber.from(1000000).mul(decimals),
+      { from: owner.address }
+    );
+    console.log(await uni.totalLiquidityTokens());
+
+    console.log('My Contract Balance', await uni.balanceOf(uni.address));
+    await uni.transfer(acc3.address, ethers.BigNumber.from(20).mul(decimals), {
+      from: owner.address,
+    });
+    console.log(await uni.totalLiquidityTokens());
+
+    expect(await uni.totalLiquidityTokens()).to.equal(
+      ethers.BigNumber.from(1).mul(decimals)
+    );
+  });
+
+  it('Claim your reward', async function () {
+    await uni.transfer(
+      acc1.address,
+      ethers.BigNumber.from(100000000000).mul(decimals),
+      { from: owner.address }
+    );
+
+    await uni.transfer(
+      acc2.address,
+      ethers.BigNumber.from(100000000000).mul(decimals),
+      { from: owner.address }
+    );
+
+    console.log(await uni.balanceOf(owner.address));
+    const tx = await uni.claimTokens();
+    await tx.wait();
+    console.log('After Claiming - ', await uni.balanceOf(owner.address));
+
+    console.log('Before Balance', await uni.balanceOf(acc1.address));
+    console.log(
+      'claimable rewarsdstotal',
+      await uni.connect(acc1).claimableRewardTokens()
+    );
+    // const txz = await uni.connect(acc1).showYourClaimableShare();
+    const txz = await uni.connect(acc1).claimTokens();
+    await txz.wait();
+    // console.log(txz);
+    console.log('After Claiming - ', await uni.balanceOf(acc1.address));
   });
 
   // it('create liquidity', async function () {
