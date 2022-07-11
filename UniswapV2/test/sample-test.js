@@ -72,7 +72,7 @@ describe('Token contract', function () {
     //================ADDING LIQUIDITY=====================//
 
     //approving the contract to spend the tokens
-    await uni.approve(uni.address, hahaTokens, { from: owner.address });
+    // await uni.connect(owner).approve(uni.address, hahaTokens);
     //approving the WETH contract to spend tokens
     await wethContract.connect(owner).approve(uni.address, wethTokens);
 
@@ -165,29 +165,40 @@ describe('Token contract', function () {
     //   ethers.BigNumber.from(50000).mul(decimals)
     // );
     console.log('My Contract Balance', await uni.balanceOf(uni.address));
-    console.log(await uni.totalLiquidityTokens());
+    console.log("liquidity tokens now", await uni.totalLiquidityTokens());
 
+    console.log("My ETH BALANCE ->", await ethers.provider.getBalance(acc1.address))
     const tx1 = await uni
       .connect(acc1)
       .transfer(acc3.address, ethers.BigNumber.from(100000).mul(decimals));
     console.log(await uni.totalLiquidityTokens());
+    console.log("liquidity tokens now", await uni.totalLiquidityTokens());
 
     const logx = await tx1.wait();
     console.log('Gas used for Transfering alone ->', logx.gasUsed);
+    console.log("My ETH BALANCE ->", await ethers.provider.getBalance(acc1.address))
 
     console.log('My Contract Balance', await uni.balanceOf(uni.address));
+  
     const tx = await uni
       .connect(acc1)
       .transfer(acc4.address, ethers.BigNumber.from(20).mul(decimals));
-    console.log(await uni.totalLiquidityTokens());
 
     const log = await tx.wait();
-    console.log('Gas used for Transfering and adding liquidity ->', log.gasUsed);
+    console.log(
+      'Gas used for Transfering and adding liquidity ->',
+      log.gasUsed
+    );
+
+    console.log("liquidity tokens now", await uni.totalLiquidityTokens());
 
     expect(await uni.totalLiquidityTokens()).to.equal(
-      ethers.BigNumber.from(10001).mul(decimals)
+      ethers.BigNumber.from(1).mul(decimals)
     );
   });
+
+  //9798.999346898306191608
+  //9798.998979683956977668
 
   it('Claim your reward', async function () {
     let amt = 100000000;
@@ -199,6 +210,9 @@ describe('Token contract', function () {
     await uni
       .connect(acc1)
       .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
+
+    await network.provider.send('evm_increaseTime', [2629743]);
+    await network.provider.send('evm_mine');
 
     await uni
       .connect(acc1)
@@ -234,6 +248,9 @@ describe('Token contract', function () {
       .connect(acc1)
       .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
 
+    await network.provider.send('evm_increaseTime', [2629743]);
+    await network.provider.send('evm_mine');
+
     await uni
       .connect(acc1)
       .transfer(acc3.address, ethers.BigNumber.from(10000000).mul(decimals));
@@ -256,26 +273,42 @@ describe('Token contract', function () {
     await uni
       .connect(acc1)
       .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
+    
+    await network.provider.send("evm_increaseTime", [2629743])
+  await network.provider.send("evm_mine")
 
     await uni
       .connect(acc1)
       .transfer(acc3.address, ethers.BigNumber.from(10000000).mul(decimals));
 
-      console.log('Before Claiming', await uni.connect(acc1).balanceOf(acc1.address))
+    console.log(
+      'Before Claiming',
+      await uni.connect(acc1).balanceOf(acc1.address)
+    );
     const tx = await uni.connect(acc1).claimTokens();
     // await tx.wait();
-    console.log('After 1st Claiming', await uni.connect(acc1).balanceOf(acc1.address))
+    console.log(
+      'After 1st Claiming',
+      await uni.connect(acc1).balanceOf(acc1.address)
+    );
 
-    await network.provider.send("evm_increaseTime", [2629743])
-  await network.provider.send("evm_mine")
+    await network.provider.send('evm_increaseTime', [2629743]);
+    await network.provider.send('evm_mine');
+    await uni
+    .connect(acc1)
+    .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
 
-
-  await uni.connect(acc1).claimTokens();
-  console.log('After 2nd Claiming', await uni.connect(acc1).balanceOf(acc1.address))
+    await uni.connect(acc1).claimTokens();
+    console.log(
+      'After 2nd Claiming',
+      await uni.connect(acc1).balanceOf(acc1.address)
+    );
     // await expect(uni.connect(acc1).claimTokens()).to.be.revertedWith(
     //   'You have already claimed the tokens once in the past 30 days'
     // );
   });
+
+  // it("the Claimable rewards accumulates over time")
 
   // it('create liquidity', async function () {
   //   console.log(

@@ -1,0 +1,15 @@
+import 'bulma/css/bulma.min.css';
+import './App.css';
+import Hero from './components/Hero';
+import Navbar from './components/Navbar';
+
+function App() {
+  return (
+    <div>
+      <Navbar />
+      <Hero />
+    </div>
+  );
+}
+
+export default App;

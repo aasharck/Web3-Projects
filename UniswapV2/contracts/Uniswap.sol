@@ -21,17 +21,21 @@ contract HAHA is ERC20, Ownable {
 
     //Both the below variables will be set back to 0 once the respective functions are executed.
     uint256 public totalRewardTokens;
+    //this is used to minus to keep track of the tokens currently
     uint256 public claimableRewardTokens;
+    //A constant token amount
     uint256 public monthlyRewardTokens;
-    uint256 public minRewardTokensRequired = 100000 * 10**18;
+
     uint256 public totalLiquidityTokens;
+
+    uint256 public monthlyTimeStamp;
 
     mapping(address => bool) public excludedFromTax;
 
     mapping(address => uint256) public lastClaimTime;
     //(address => uint256) public lastClaimedTokens;
 
-    uint256 public minTokensRequiredToAddLiquidity = 100000 * 10**18;
+    uint256 public minTokensRequiredToAddLiquidity = 10000 * 10**18;
     //to incentivise the one who executes the swapAndLiquify function
     address[] private liquidityExecutioner;
 
@@ -48,6 +52,7 @@ contract HAHA is ERC20, Ownable {
             .createPair(address(this), WETH);
 
         uniswapV2Router = _uniswapV2Router;
+        monthlyTimeStamp = block.timestamp;
         excludedFromTax[msg.sender] = true;
         excludedFromTax[ROUTER] = true;
         excludedFromTax[address(this)] = true;
@@ -55,12 +60,11 @@ contract HAHA is ERC20, Ownable {
 
     event Log(string message, uint256 val);
 
-    function setMinTokensRequiredToAddLiquidity(uint256 _amount) public onlyOwner{
+    function setMinTokensRequiredToAddLiquidity(uint256 _amount)
+        public
+        onlyOwner
+    {
         minTokensRequiredToAddLiquidity = _amount;
-    }
-
-    function setMinRewardTokensRequired(uint256 _amount) public onlyOwner{
-        minRewardTokensRequired = _amount;
     }
 
     function mint(uint256 amount) public payable {
@@ -95,12 +99,11 @@ contract HAHA is ERC20, Ownable {
             uint256 liquidityTokens = taxFee / 2; //Calculates liquidity
             totalLiquidityTokens = totalLiquidityTokens + liquidityTokens; //Total Liquidity
             totalRewardTokens = totalRewardTokens + (taxFee - liquidityTokens); //Total Rewards
-            if (totalRewardTokens >= minRewardTokensRequired) {
+            if (block.timestamp >= monthlyTimeStamp + 2629743) {
                 monthlyRewardTokens = claimableRewardTokens + totalRewardTokens;
-                claimableRewardTokens =
-                    claimableRewardTokens +
-                    totalRewardTokens;
+                claimableRewardTokens = monthlyRewardTokens;
                 totalRewardTokens = 0;
+                monthlyTimeStamp = block.timestamp;
             }
             uint256 finalAmountForTransfer = amount - taxFee;
             _transfer(msg.sender, to, finalAmountForTransfer);
@@ -127,12 +130,11 @@ contract HAHA is ERC20, Ownable {
             uint256 liquidityTokens = taxFee / 2; //Calculates liquidity
             totalLiquidityTokens = totalLiquidityTokens + liquidityTokens; //Total Liquidity
             totalRewardTokens = totalRewardTokens + (taxFee - liquidityTokens); //Total Rewards
-            if (totalRewardTokens >= minRewardTokensRequired) {
+            if (block.timestamp >= monthlyTimeStamp + 2629743) {
                 monthlyRewardTokens = claimableRewardTokens + totalRewardTokens;
-                claimableRewardTokens =
-                    claimableRewardTokens +
-                    totalRewardTokens;
+                claimableRewardTokens = monthlyRewardTokens;
                 totalRewardTokens = 0;
+                monthlyTimeStamp = block.timestamp;
             }
             uint256 finalAmountForTransfer = amount - taxFee;
             _spendAllowance(from, msg.sender, finalAmountForTransfer);
@@ -212,25 +214,26 @@ contract HAHA is ERC20, Ownable {
     }
 
     function claimTokens() public {
-        require(
-            monthlyRewardTokens >= minRewardTokensRequired,
-            "There isn't enough tokens to claim"
-        );
+        require(monthlyRewardTokens > 0, "The Reward Wallet is Empty");
         require(
             balanceOf(address(this)) != 0,
             "Rewards Wallet is Empty please try again later"
         );
-        require(lastClaimTime[msg.sender]==0 ||  block.timestamp >= lastClaimTime[msg.sender]+2629743, "You have already claimed the tokens once in the past 30 days");
+        require(
+            lastClaimTime[msg.sender] == 0 ||
+                (lastClaimTime[msg.sender] <= monthlyTimeStamp),
+            "You have already claimed the tokens once in the past 30 days"
+        );
         //totalRewardTokens = balanceOf(address(this)) - totalLiquidityTokens;
         lastClaimTime[msg.sender] = block.timestamp;
         uint256 yourTotalShare = ((balanceOf(msg.sender) * 10000000000000) /
             totalSupply());
         uint256 yourTokens = (yourTotalShare * monthlyRewardTokens) /
             10000000000000;
-        if (claimableRewardTokens < yourTokens) {
-            yourTokens = claimableRewardTokens;
-            monthlyRewardTokens = 0;
-        }
+        require(
+            claimableRewardTokens >= yourTokens,
+            "There isn't enough tokens to claim"
+        );
         require(
             yourTokens > 100 * 10**18,
             "You must have atleast 100 Tokens to Claim your Reward!"
@@ -256,7 +259,11 @@ contract HAHA is ERC20, Ownable {
         address _tokenB,
         uint256 _amountA,
         uint256 _amountB
-    ) external {
+    ) external onlyOwner{
+
+        approve(address(this), _amountA);
+        // IERC20(_tokenB).approve(address(this), _amountB);
+
         IERC20(_tokenA).transferFrom(msg.sender, address(this), _amountA);
         IERC20(_tokenB).transferFrom(msg.sender, address(this), _amountB);
 
