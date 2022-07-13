@@ -1,0 +1,18 @@
+body{
+    background-color: black;
+}
+
+html{
+    background-color: black;
+    color: white;
+}
+
+div{
+    background-color: black;
+    color: white;
+}
+
+div .card{
+    background-color: black;
+    color: white;
+}

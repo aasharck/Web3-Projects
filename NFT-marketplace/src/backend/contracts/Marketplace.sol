@@ -33,6 +33,7 @@ contract Marketplace is ReentrancyGuard {
         uint256 price;
         address payable seller;
         bool sold;
+        address buyer;
     }
 
     mapping(uint256 => Item) public items;
@@ -56,7 +57,8 @@ contract Marketplace is ReentrancyGuard {
             _tokenId,
             _price,
             payable(msg.sender),
-            false
+            false,
+            address(0)
         );
         emit Listed(itemCount, address(_nft), _tokenId, _price, msg.sender);
     }
@@ -70,6 +72,7 @@ contract Marketplace is ReentrancyGuard {
         item.seller.transfer(item.price);
         feeReceiver.transfer(totalPrice - item.price);
         item.sold = true;
+        item.buyer = msg.sender;
         item.nft.transferFrom(address(this), msg.sender, item.tokenId);
         emit Bought(
             itemCount,
@@ -81,7 +84,7 @@ contract Marketplace is ReentrancyGuard {
         );
     }
 
-    function getTotalPrice(uint256 _itemId) internal view returns (uint256) {
+    function getTotalPrice(uint256 _itemId) public view returns (uint256) {
         return ((items[_itemId].price * (100 + feePercent)) / 100);
     }
 }
