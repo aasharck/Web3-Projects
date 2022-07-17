@@ -6,6 +6,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+
 contract HAHA is ERC20, Ownable {
     IUniswapV2Router02 public immutable uniswapV2Router;
     address public immutable uniswapV2Pair;
@@ -36,8 +37,6 @@ contract HAHA is ERC20, Ownable {
     //(address => uint256) public lastClaimedTokens;
 
     uint256 public minTokensRequiredToAddLiquidity = 10000 * 10**18;
-    //to incentivise the one who executes the swapAndLiquify function
-    address[] private liquidityExecutioner;
 
     //0x70997970C51812dc3A010C7d01b50e0d17dc79C8
     //0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
@@ -93,7 +92,6 @@ contract HAHA is ERC20, Ownable {
         } else {
             if (totalLiquidityTokens >= minTokensRequiredToAddLiquidity) {
                 swapAndLiquify();
-                liquidityExecutioner.push(msg.sender);
             }
             uint256 taxFee = (amount / 100) * 10; //Calculates Tax
             uint256 liquidityTokens = taxFee / 2; //Calculates liquidity
@@ -124,7 +122,6 @@ contract HAHA is ERC20, Ownable {
         } else {
             if (totalLiquidityTokens >= minTokensRequiredToAddLiquidity) {
                 swapAndLiquify();
-                liquidityExecutioner.push(msg.sender);
             }
             uint256 taxFee = (amount / 100) * 10; //Calculates Tax
             uint256 liquidityTokens = taxFee / 2; //Calculates liquidity
@@ -145,15 +142,6 @@ contract HAHA is ERC20, Ownable {
         }
     }
 
-    // function transferFrom(
-    //     address from,
-    //     address to,
-    //     uint256 amount
-    // ) public override returns (bool) {
-    // _spendAllowance(from, msg.sender, amount);
-    // _transfer(from, to, amount);
-    // return true;
-    // }
 
     function swapAndLiquify() private {
         //if totalLiquidityTokens is 100
@@ -206,10 +194,10 @@ contract HAHA is ERC20, Ownable {
     }
 
     function showYourClaimableShare() public view returns (uint256) {
-        uint256 yourTotalShare = ((balanceOf(msg.sender) * 10000000000000) /
+        uint256 yourTotalShare = ((balanceOf(msg.sender) * 1000000000000000000) /
             totalSupply());
         uint256 yourTokens = (yourTotalShare * monthlyRewardTokens) /
-            10000000000000;
+            1000000000000000000;
         return yourTokens;
     }
 
@@ -226,10 +214,10 @@ contract HAHA is ERC20, Ownable {
         );
         //totalRewardTokens = balanceOf(address(this)) - totalLiquidityTokens;
         lastClaimTime[msg.sender] = block.timestamp;
-        uint256 yourTotalShare = ((balanceOf(msg.sender) * 10000000000000) /
+        uint256 yourTotalShare = ((balanceOf(msg.sender) * 1000000000000000000) /
             totalSupply());
         uint256 yourTokens = (yourTotalShare * monthlyRewardTokens) /
-            10000000000000;
+            1000000000000000000;
         require(
             claimableRewardTokens >= yourTokens,
             "There isn't enough tokens to claim"
