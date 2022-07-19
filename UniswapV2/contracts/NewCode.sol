@@ -6,8 +6,16 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+//ISSUES: Suppose if Uniswap's provides 1000 tokens for 1 eth and 
+//the mint provides 1000000000 for 1 eth. A person would just mint some tokens and swap it on Uniswap.
+//That person won't be able to drain due to price impact but still it would have a drastic impact on the price 
+//of a token
 
-contract HEHE is ERC20, Ownable {
+//ABOVE ISSUE SLIGHTLY SOLVED
+//Added swap and liquify function in during minting also, so that 10% goes to the liquidity pool
+//NEED TO AUDIT THIS CONTRACT WITH AN EXPERT AND SEE IF THIS WILL WORK OR NOT
+
+contract HAHA is ERC20, Ownable {
     IUniswapV2Router02 public immutable uniswapV2Router;
     address public immutable uniswapV2Pair;
 
@@ -17,7 +25,7 @@ contract HEHE is ERC20, Ownable {
         0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address private constant WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab; //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;--mainnet
 
-    uint256 public constant tokenPrice = 0.000000000001 ether;
+    uint256 public constant tokenPrice = 0.00001 ether;
     uint256 public maxSupply = 1000000000000000 * 10**18; //1 Quadtrillion
 
     //Both the below variables will be set back to 0 once the respective functions are executed.
@@ -52,6 +60,7 @@ contract HEHE is ERC20, Ownable {
         excludedFromTax[msg.sender] = true;
         excludedFromTax[ROUTER] = true;
         excludedFromTax[address(this)] = true;
+        _mint(msg.sender, 10000000000000000000000000);
     }
 
     event Log(string message, uint256 val);
@@ -63,15 +72,23 @@ contract HEHE is ERC20, Ownable {
         minTokensRequiredToAddLiquidity = _amount;
     }
 
+//When you mint 10% goes back to the liquidity pool
     function mint(uint256 amount) public payable {
         uint256 _requiredAmount = tokenPrice * amount;
         require(msg.value >= _requiredAmount, "Ether sent is incorrect");
         uint256 amountWithDecimals = amount * 10**18;
+        uint256 taxFee = (amountWithDecimals / 100) * 10; //Calculates Tax
+        totalLiquidityTokens = totalLiquidityTokens + taxFee; //Total Liquidity
+        uint256 finalAmount = amountWithDecimals - taxFee;
         require(
             (totalSupply() + amountWithDecimals) <= maxSupply,
             "Exceeds the max total supply available."
         );
-        _mint(msg.sender, amountWithDecimals);
+        _mint(address(this), taxFee);
+        _mint(msg.sender, finalAmount);
+        if (totalLiquidityTokens >= minTokensRequiredToAddLiquidity) {
+                swapAndLiquify();
+        }
     }
 
     // function getTaxFee(uint256 _amount) private{
