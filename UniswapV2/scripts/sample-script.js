@@ -14,7 +14,7 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Uniswap = await hre.ethers.getContractFactory("HAHA");
+  const Uniswap = await hre.ethers.getContractFactory("HEHE");
   const uniswap = await Uniswap.deploy();
 
   await uniswap.deployed();

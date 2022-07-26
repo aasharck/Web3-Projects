@@ -6,18 +6,23 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-
 contract HEHE is ERC20, Ownable {
     IUniswapV2Router02 public immutable uniswapV2Router;
     address public immutable uniswapV2Pair;
 
     // address private constant FACTORY =
     //     0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
-    address private constant ROUTER =
-        0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address private constant WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab; //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;--mainnet
+    // address private constant FACTORY = 0x6725F303b657a9451d8BA641348b6761A6CC7a17; //BSC testnet
+    // address private constant ROUTER = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address private constant ROUTER =0x10ED43C718714eb63d5aA57B78B54704E256024E; //Pancake
+    // address private constant ROUTER = 0xD99D1c33F9fC3444f8101754aBC46c52416550D1; //pancake testnet
+    // address private constant WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab; //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;--mainnet
+    // address private constant WETH = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd; //actually WBNB - Testnet
+    address private constant WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c; //actually WBNB - Mainnet
+    
+    
 
-    uint256 public constant tokenPrice = 0.000000000001 ether;
+    uint256 public constant tokenPrice = 0.0001 ether;
     uint256 public maxSupply = 1000000000000000 * 10**18; //1 Quadtrillion
 
     //Both the below variables will be set back to 0 once the respective functions are executed.
@@ -38,20 +43,21 @@ contract HEHE is ERC20, Ownable {
 
     uint256 public minTokensRequiredToAddLiquidity = 10000 * 10**18;
 
-
-    constructor() ERC20("Haha Token", "HAHA") {
-        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(
-            0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
-        );
+    constructor() ERC20("Haha Token", "HEHE") {
+        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(ROUTER);
         // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), WETH);
+        //below is for BSC Testnet
+        // uniswapV2Pair = IUniswapV2Factory(FACTORY)
+        //     .createPair(address(this), WETH);
 
         uniswapV2Router = _uniswapV2Router;
         monthlyTimeStamp = block.timestamp;
         excludedFromTax[msg.sender] = true;
         excludedFromTax[ROUTER] = true;
         excludedFromTax[address(this)] = true;
+        _mint(msg.sender, 500000000000000000000000000000000);
     }
 
     event Log(string message, uint256 val);
@@ -139,7 +145,6 @@ contract HEHE is ERC20, Ownable {
         }
     }
 
-
     function swapAndLiquify() private {
         //if totalLiquidityTokens is 100
         uint256 firstHalf = totalLiquidityTokens / 2; //50
@@ -185,14 +190,14 @@ contract HEHE is ERC20, Ownable {
             tokenAmount,
             0, // slippage is unavoidable
             0, // slippage is unavoidable
-            address(this),//contract's address so that liquidity will be locked forever
+            address(this), //contract's address so that liquidity will be locked forever
             block.timestamp
         );
     }
 
     function showYourClaimableShare() public view returns (uint256) {
-        uint256 yourTotalShare = ((balanceOf(msg.sender) * 1000000000000000000) /
-            totalSupply());
+        uint256 yourTotalShare = ((balanceOf(msg.sender) *
+            1000000000000000000) / totalSupply());
         uint256 yourTokens = (yourTotalShare * monthlyRewardTokens) /
             1000000000000000000;
         return yourTokens;
@@ -211,8 +216,8 @@ contract HEHE is ERC20, Ownable {
         );
         //totalRewardTokens = balanceOf(address(this)) - totalLiquidityTokens;
         lastClaimTime[msg.sender] = block.timestamp;
-        uint256 yourTotalShare = ((balanceOf(msg.sender) * 1000000000000000000) /
-            totalSupply());
+        uint256 yourTotalShare = ((balanceOf(msg.sender) *
+            1000000000000000000) / totalSupply());
         uint256 yourTokens = (yourTotalShare * monthlyRewardTokens) /
             1000000000000000000;
         require(
@@ -244,8 +249,7 @@ contract HEHE is ERC20, Ownable {
         address _tokenB,
         uint256 _amountA,
         uint256 _amountB
-    ) external onlyOwner{
-
+    ) external onlyOwner {
         approve(address(this), _amountA);
         // IERC20(_tokenB).approve(address(this), _amountB);
 
@@ -270,16 +274,5 @@ contract HEHE is ERC20, Ownable {
         emit Log("amountA", amountA);
         emit Log("amountB", amountB);
         emit Log("liquidity", liquidity);
-    }
-
-    function getReservesForToken() public pure returns (uint256) {
-        uint256 a = IUniswapV2Router02(
-            0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
-        ).quote(100, 1000000, 1000000);
-        return a;
-
-        //Newly added
-        // IERC20(address(this)).approve(ROUTER, tokenAmount);
-        // IERC20(uniswapV2Router.WETH()).approve(ROUTER, ethAmount);
     }
 }

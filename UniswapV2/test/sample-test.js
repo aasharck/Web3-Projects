@@ -3,9 +3,13 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
 const IERC20_SOURCE = '@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20';
-const WETH_WHALE = '0x1c11ba15939e1c16ec7ca1678df6160ea2063bc5';
-const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
-const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
+// const WETH_WHALE = '0x1c11ba15939e1c16ec7ca1678df6160ea2063bc5'; //ETH MAinnet
+const WETH_WHALE = '0xde498B6179500EB95D48A47f315E473a39CBC1AA'; //BSC Mainnet
+
+// const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; //ETH MAINNET
+const WETH_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+// const ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; //ETH MAINNET
+const ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 
 describe('Token contract', function () {
   let wethContract;
@@ -23,12 +27,12 @@ describe('Token contract', function () {
 
   beforeEach(async function () {
     // Get the ContractFactory and Signers here.
-    Uni = await ethers.getContractFactory('HAHA');
+    Uni = await ethers.getContractFactory('HEHE');
     uni = await Uni.deploy();
     await uni.deployed();
     [owner, acc1, acc2, acc3, acc4] = await ethers.getSigners();
 
-    let amt = 1000000000;
+    let amt = 1000000;
     let txx = await uni.mint(amt, { value: ethers.utils.parseEther('100.0') });
     await txx.wait();
 
@@ -151,7 +155,7 @@ describe('Token contract', function () {
     console.log('My Contract Balance', await uni.balanceOf(uni.address));
     console.log(await uni.totalLiquidityTokens());
 
-    let amt = 10000000;
+    let amt = 1000000;
     let txx = await uni
       .connect(acc1)
       .mint(amt, { value: ethers.utils.parseEther('100.0') });
@@ -201,22 +205,35 @@ describe('Token contract', function () {
   //9798.998979683956977668
 
   it('Claim your reward', async function () {
-    let amt = 100000000;
+    let amt = 10000000;
     let txx = await uni
       .connect(acc1)
-      .mint(amt, { value: ethers.utils.parseEther('100.0') });
+      .mint(amt, { value: ethers.utils.parseEther('1000.0') });
     await txx.wait();
+
+    let tx2 = await uni
+      .connect(acc2)
+      .mint(amt, { value: ethers.utils.parseEther('1000.0') });
+    await tx2.wait();
 
     await uni
       .connect(acc1)
-      .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
+      .transfer(acc2.address, ethers.BigNumber.from(1000000).mul(decimals));
+
+      await uni
+      .connect(acc2)
+      .transfer(acc3.address, ethers.BigNumber.from(1000000).mul(decimals));
+
+      await uni
+      .connect(acc3)
+      .transfer(owner.address, ethers.BigNumber.from(900000).mul(decimals));
 
     await network.provider.send('evm_increaseTime', [2629743]);
     await network.provider.send('evm_mine');
 
     await uni
       .connect(acc1)
-      .transfer(acc3.address, ethers.BigNumber.from(10000000).mul(decimals));
+      .transfer(acc3.address, ethers.BigNumber.from(1000000).mul(decimals));
 
     console.log(await uni.balanceOf(acc1.address));
     const tx = await uni.connect(acc1).claimTokens();
@@ -238,22 +255,22 @@ describe('Token contract', function () {
   });
 
   it('Can only claim tokens once in every 30 days', async function () {
-    let amt = 100000000;
+    let amt = 10000000;
     let txx = await uni
       .connect(acc1)
-      .mint(amt, { value: ethers.utils.parseEther('100.0') });
+      .mint(amt, { value: ethers.utils.parseEther('1000.0') });
     await txx.wait();
 
     await uni
       .connect(acc1)
-      .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
+      .transfer(acc2.address, ethers.BigNumber.from(1000000).mul(decimals));
 
     await network.provider.send('evm_increaseTime', [2629743]);
     await network.provider.send('evm_mine');
 
     await uni
       .connect(acc1)
-      .transfer(acc3.address, ethers.BigNumber.from(10000000).mul(decimals));
+      .transfer(acc3.address, ethers.BigNumber.from(1000000).mul(decimals));
 
     const tx = await uni.connect(acc1).claimTokens();
     // await tx.wait();
@@ -264,15 +281,15 @@ describe('Token contract', function () {
   });
 
   it('Will be able to claim tokens again after 30 days', async function () {
-    let amt = 100000000;
+    let amt = 10000000;
     let txx = await uni
       .connect(acc1)
-      .mint(amt, { value: ethers.utils.parseEther('100.0') });
+      .mint(amt, { value: ethers.utils.parseEther('1000.0') });
     await txx.wait();
 
     await uni
       .connect(acc1)
-      .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
+      .transfer(acc2.address, ethers.BigNumber.from(1000000).mul(decimals));
     
     await network.provider.send("evm_increaseTime", [2629743])
   await network.provider.send("evm_mine")
@@ -296,7 +313,7 @@ describe('Token contract', function () {
     await network.provider.send('evm_mine');
     await uni
     .connect(acc1)
-    .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
+    .transfer(acc2.address, ethers.BigNumber.from(1000000).mul(decimals));
 
     await uni.connect(acc1).claimTokens();
     console.log(
