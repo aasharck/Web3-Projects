@@ -80,9 +80,6 @@ contract HEHE is ERC20, Ownable {
         _mint(msg.sender, amountWithDecimals);
     }
 
-    // function getTaxFee(uint256 _amount) private{
-
-    // }
 
     function transfer(address to, uint256 amount)
         public
