@@ -239,7 +239,7 @@ contract HEHE is ERC20, Ownable {
 
     receive() external payable {}
 
-    //================FOR TESTING PURPOSES ONLYYY==============================//
+
 
     function addLiquidityTokens(
         address _tokenA,
