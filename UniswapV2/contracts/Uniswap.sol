@@ -13,12 +13,12 @@ contract HEHE is ERC20, Ownable {
     // address private constant FACTORY =
     //     0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
     // address private constant FACTORY = 0x6725F303b657a9451d8BA641348b6761A6CC7a17; //BSC testnet
-    // address private constant ROUTER = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address private constant ROUTER =0x10ED43C718714eb63d5aA57B78B54704E256024E; //Pancake
+    address private constant ROUTER = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    // address private constant ROUTER =0x10ED43C718714eb63d5aA57B78B54704E256024E; //Pancake
     // address private constant ROUTER = 0xD99D1c33F9fC3444f8101754aBC46c52416550D1; //pancake testnet
-    // address private constant WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab; //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;--mainnet
+    address private constant WETH = 0xc778417E063141139Fce010982780140Aa0cD5Ab; //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;--mainnet
     // address private constant WETH = 0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd; //actually WBNB - Testnet
-    address private constant WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c; //actually WBNB - Mainnet
+    // address private constant WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c; //actually WBNB - Mainnet
     
     
 
@@ -41,7 +41,7 @@ contract HEHE is ERC20, Ownable {
     mapping(address => uint256) public lastClaimTime;
     //(address => uint256) public lastClaimedTokens;
 
-    uint256 public minTokensRequiredToAddLiquidity = 10000 * 10**18;
+    uint256 public minTokensRequiredToAddLiquidity = 100000 * 10**18;
 
     constructor() ERC20("Haha Token", "HEHE") {
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(ROUTER);
@@ -187,7 +187,7 @@ contract HEHE is ERC20, Ownable {
             tokenAmount,
             0, // slippage is unavoidable
             0, // slippage is unavoidable
-            address(this), //contract's address so that liquidity will be locked forever
+            address(this), //contract's address so that LP tokens will be locked forever
             block.timestamp
         );
     }
@@ -238,7 +238,6 @@ contract HEHE is ERC20, Ownable {
     }
 
     receive() external payable {}
-
 
 
     function addLiquidityTokens(

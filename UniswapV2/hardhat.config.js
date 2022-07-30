@@ -19,18 +19,26 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: '0.8.7',
+  defaultNetwork: 'localhost',
   networks: {
-    hardhat: {
+    localhost: {},
+    forkingMainnet: {
+      url: 'http://127.0.0.1:8545',
       forking: {
-        url: process.env.KEY_BSC,
-        chainId: 56,
+        url: process.env.ALCHEMY_KEY,
       },
     },
-    ropsten: {
-      url: process.env.ALCHEMY_KEY_ROPSTEN,
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
+    // bscTestnet: {
+    //   url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+    //   chainId: 97,
+    //   gasPrice: 20000000000,
+    //   accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    // },
+    // ropsten: {
+    //   url: process.env.ALCHEMY_KEY_ROPSTEN,
+    //   accounts:
+    //     process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    // },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API,
