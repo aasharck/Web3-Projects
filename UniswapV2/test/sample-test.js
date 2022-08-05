@@ -4,8 +4,8 @@ const { ethers } = require('hardhat');
 
 const IERC20_SOURCE = '@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20';
 const WETH_WHALE = '0x1c11ba15939e1c16ec7ca1678df6160ea2063bc5'; //ETH MAinnet
-// const WETH_WHALE = '0xde498B6179500EB95D48A47f315E473a39CBC1AA'; //BSC Mainnet - 
-// const WETH_WHALE = '0x352a7a5277eC7619500b06fA051974621C1acd12'; //BSC Testnet - 
+// const WETH_WHALE = '0xde498B6179500EB95D48A47f315E473a39CBC1AA'; //BSC Mainnet -
+// const WETH_WHALE = '0x352a7a5277eC7619500b06fA051974621C1acd12'; //BSC Testnet -
 
 const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'; //ETH MAINNET
 // const WETH_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'; //WBNB Mainnet
@@ -26,6 +26,7 @@ describe('Token contract', function () {
   const decimals = ethers.BigNumber.from(10).pow(18);
   let hahaTokens;
   let wethTokens;
+  let v2PairAdd;
 
   beforeEach(async function () {
     // Get the ContractFactory and Signers here.
@@ -34,14 +35,17 @@ describe('Token contract', function () {
     await uni.deployed();
     [owner, acc1, acc2, acc3, acc4] = await ethers.getSigners();
 
-    let amt = 100000;
-    let txx = await uni.mint(amt, { value: ethers.utils.parseEther('10.0'), gasLimit: 300000 });
+    let amt = 1000000;
+    let txx = await uni.mint(amt, {
+      value: ethers.utils.parseEther('10.0'),
+      gasLimit: 300000,
+    });
     await txx.wait();
 
     //send ether to contract
     await owner.sendTransaction({
       to: uni.address,
-      value: ethers.utils.parseEther('1.0'), // Sends exactly 1.0 ether
+      value: ethers.utils.parseEther('10.0'), // Sends exactly 1.0 ether
       gasLimit: 300000,
     });
 
@@ -68,8 +72,8 @@ describe('Token contract', function () {
     //   ethers.BigNumber.from(1000000).mul(decimals),
     //   { from: owner.address }
     // );
-    hahaTokens = ethers.BigNumber.from(100000).mul(decimals);
-    wethTokens = ethers.BigNumber.from(100).mul(decimals);
+    hahaTokens = ethers.BigNumber.from(1000000).mul(decimals);
+    wethTokens = ethers.BigNumber.from(1000).mul(decimals);
 
     //transfer some WETH to contract owner from Whale to provide liquidity
     await wethContract.transfer(owner.address, wethTokens, {
@@ -93,7 +97,9 @@ describe('Token contract', function () {
       }
     );
 
-    await tx.wait();
+    let a = await tx.wait();
+    // console.log(a.logs[10].address);
+    v2PairAdd = a.logs[10].address;
   });
 
   it('A Uniswap token Pair is created', async function () {
@@ -103,7 +109,7 @@ describe('Token contract', function () {
   });
 
   it('You can mint tokens', async function () {
-    let amt = 10000;
+    let amt = 100000;
     let tx = await uni
       .connect(acc1)
       .mint(amt, { value: ethers.utils.parseEther('1.0') });
@@ -111,7 +117,7 @@ describe('Token contract', function () {
     console.log('Gas used for Minting ->', log.gasUsed);
 
     expect(await uni.balanceOf(acc1.address)).to.equal(
-      ethers.BigNumber.from(10000).mul(decimals)
+      ethers.BigNumber.from(100000).mul(decimals)
     );
   });
 
@@ -131,7 +137,7 @@ describe('Token contract', function () {
   });
 
   it('Each Transfer will take 10% tax and updates Liquidity and rewards variables', async function () {
-    let amt = 1000000;
+    let amt = 10000000;
     let txx = await uni
       .connect(acc1)
       .mint(amt, { value: ethers.utils.parseEther('100.0') });
@@ -154,10 +160,13 @@ describe('Token contract', function () {
   });
 
   it('Check if Liquidity is added if it reaches minimum amount', async function () {
-    console.log('My Contract Balance', await uni.balanceOf(uni.address));
-    console.log(await uni.totalLiquidityTokens());
+    console.log(
+      'This Contract Balance',
+      (await uni.balanceOf(uni.address)).toString()
+    );
+    console.log('Total Liquidity Tokens', await uni.totalLiquidityTokens());
 
-    let amt = 1000000;
+    let amt = 10000000;
     let txx = await uni
       .connect(acc1)
       .mint(amt, { value: ethers.utils.parseEther('100.0') });
@@ -165,41 +174,60 @@ describe('Token contract', function () {
 
     await uni
       .connect(acc1)
-      .transfer(acc2.address, ethers.BigNumber.from(100000).mul(decimals));
+      .transfer(acc2.address, ethers.BigNumber.from(1000000).mul(decimals)); //50000
 
     // expect(await uni.totalLiquidityTokens()).to.equal(
     //   ethers.BigNumber.from(50000).mul(decimals)
     // );
     console.log('My Contract Balance', await uni.balanceOf(uni.address));
-    console.log("liquidity tokens now", await uni.totalLiquidityTokens());
+    console.log('liquidity tokens now', await uni.totalLiquidityTokens());
 
-    console.log("My ETH BALANCE ->", await ethers.provider.getBalance(acc1.address))
+    console.log(
+      'My ETH BALANCE ->',
+      await ethers.provider.getBalance(acc1.address)
+    );
     const tx1 = await uni
       .connect(acc1)
-      .transfer(acc3.address, ethers.BigNumber.from(100000).mul(decimals));
+      .transfer(acc3.address, ethers.BigNumber.from(1000000).mul(decimals)); //50000+50000
     console.log(await uni.totalLiquidityTokens());
-    console.log("liquidity tokens now", await uni.totalLiquidityTokens());
+    console.log('liquidity tokens now', await uni.totalLiquidityTokens());
 
     const logx = await tx1.wait();
     console.log('Gas used for Transfering alone ->', logx.gasUsed);
-    console.log("My ETH BALANCE ->", await ethers.provider.getBalance(acc1.address))
-
-    console.log('My Contract Balance', await uni.balanceOf(uni.address));
-  
-    const tx = await uni
-      .connect(acc1)
-      .transfer(acc4.address, ethers.BigNumber.from(20).mul(decimals));
-
-    const log = await tx.wait();
     console.log(
-      'Gas used for Transfering and adding liquidity ->',
-      log.gasUsed
+      'My ETH BALANCE ->',
+      await ethers.provider.getBalance(acc1.address)
     );
 
-    console.log("liquidity tokens now", await uni.totalLiquidityTokens());
+    console.log('My Contract Balance', await uni.balanceOf(uni.address));
+    console.log('V2 Pair HEHE Balance', await uni.balanceOf(v2PairAdd));
+    console.log(
+      'V2 Pair WETH Balance',
+      await wethContract.balanceOf(v2PairAdd)
+    );
+    console.log('Contract ETH BALANCE ->',await ethers.provider.getBalance(uni.address));
+    console.log('ACC1 ETH BALANCE ->',await ethers.provider.getBalance(acc1.address));
+    console.log('Contract WETH Balance',await wethContract.balanceOf(uni.address));
+
+    const tx = await uni
+      .connect(acc1)
+      .transfer(acc4.address, ethers.BigNumber.from(20).mul(decimals),{gasLimit: 3000000}); //1
+
+    const log = await tx.wait();
+    // console.log(log);
+    console.log('ACC1 ETH BALANCE After ->',await ethers.provider.getBalance(acc1.address));
+
+    console.log('Contract ETH BALANCE ->',await ethers.provider.getBalance(uni.address));
+
+    console.log('V2 Pair HEHE Balance', await uni.balanceOf(v2PairAdd));
+    console.log('V2 Pair WETH Balance',await wethContract.balanceOf(v2PairAdd));
+    console.log('Contract WETH Balance',await wethContract.balanceOf(uni.address));
+    console.log('Owner WETH Balance',await wethContract.balanceOf(owner.address));
+
+    console.log('liquidity tokens now', await uni.totalLiquidityTokens());
 
     expect(await uni.totalLiquidityTokens()).to.equal(
-      ethers.BigNumber.from(10001).mul(decimals)
+      ethers.BigNumber.from(1).mul(decimals)
     );
   });
 
@@ -218,17 +246,21 @@ describe('Token contract', function () {
       .mint(amt, { value: ethers.utils.parseEther('100.0') });
     await tx2.wait();
 
+    await uni.transfer(
+      acc1.address,
+      ethers.BigNumber.from(500000000000).mul(decimals)
+    );
     await uni
       .connect(acc1)
-      .transfer(acc2.address, ethers.BigNumber.from(100000).mul(decimals));
+      .transfer(acc2.address, ethers.BigNumber.from(5000000000).mul(decimals));
 
-      await uni
+    await uni
       .connect(acc2)
-      .transfer(acc3.address, ethers.BigNumber.from(100000).mul(decimals));
+      .transfer(acc3.address, ethers.BigNumber.from(10000000).mul(decimals));
 
-      await uni
+    await uni
       .connect(acc3)
-      .transfer(owner.address, ethers.BigNumber.from(90000).mul(decimals));
+      .transfer(owner.address, ethers.BigNumber.from(9000000).mul(decimals));
 
     await network.provider.send('evm_increaseTime', [2629743]);
     await network.provider.send('evm_mine');
@@ -257,22 +289,61 @@ describe('Token contract', function () {
   });
 
   it('Can only claim tokens once in every 30 days', async function () {
-    let amt = 1000000;
+    let amt = 10000000;
     let txx = await uni
       .connect(acc1)
-      .mint(amt, { value: ethers.utils.parseEther('100.0') });
+      .mint(amt, { value: ethers.utils.parseEther('1000.0') });
     await txx.wait();
 
+    console.log(
+      'Total Rewards Token = ',
+      (await uni.totalRewardTokens()).toString()
+    );
+    console.log(
+      'Monthly Rewards Token = ',
+      (await uni.monthlyRewardTokens()).toString()
+    );
+
+    await uni.transfer(
+      acc1.address,
+      ethers.BigNumber.from(500000000000).mul(decimals)
+    );
     await uni
       .connect(acc1)
-      .transfer(acc2.address, ethers.BigNumber.from(100000).mul(decimals));
+      .transfer(acc2.address, ethers.BigNumber.from(5000000000).mul(decimals));
+
+    console.log(
+      'Total Rewards Token = ',
+      (await uni.totalRewardTokens()).toString()
+    );
+    console.log(
+      'Monthly Rewards Token = ',
+      (await uni.monthlyRewardTokens()).toString()
+    );
 
     await network.provider.send('evm_increaseTime', [2629743]);
     await network.provider.send('evm_mine');
 
     await uni
       .connect(acc1)
-      .transfer(acc3.address, ethers.BigNumber.from(100000).mul(decimals));
+      .transfer(acc3.address, ethers.BigNumber.from(5000000000).mul(decimals));
+
+    console.log(
+      'Total Rewards Token = ',
+      (await uni.totalRewardTokens()).toString()
+    );
+    console.log(
+      'Monthly Rewards Token = ',
+      (await uni.monthlyRewardTokens()).toString()
+    );
+
+    console.log('Total Supply is ', (await uni.totalSupply()).toString());
+
+    console.log('ACC1 Balance', await uni.balanceOf(acc1.address));
+    console.log(
+      'Claimable for ACC1, ',
+      (await uni.connect(acc1).showYourClaimableShare()).toString()
+    );
 
     const tx = await uni.connect(acc1).claimTokens();
     // await tx.wait();
@@ -289,16 +360,20 @@ describe('Token contract', function () {
       .mint(amt, { value: ethers.utils.parseEther('100.0') });
     await txx.wait();
 
+    await uni.transfer(
+      acc1.address,
+      ethers.BigNumber.from(500000000000).mul(decimals)
+    );
     await uni
       .connect(acc1)
-      .transfer(acc2.address, ethers.BigNumber.from(100000).mul(decimals));
-    
-    await network.provider.send("evm_increaseTime", [2629743])
-  await network.provider.send("evm_mine")
+      .transfer(acc2.address, ethers.BigNumber.from(5000000000).mul(decimals));
+
+    await network.provider.send('evm_increaseTime', [2629743]);
+    await network.provider.send('evm_mine');
 
     await uni
       .connect(acc1)
-      .transfer(acc3.address, ethers.BigNumber.from(100000).mul(decimals));
+      .transfer(acc3.address, ethers.BigNumber.from(100000000).mul(decimals));
 
     console.log(
       'Before Claiming',
@@ -314,8 +389,8 @@ describe('Token contract', function () {
     await network.provider.send('evm_increaseTime', [2629743]);
     await network.provider.send('evm_mine');
     await uni
-    .connect(acc1)
-    .transfer(acc2.address, ethers.BigNumber.from(100000).mul(decimals));
+      .connect(acc1)
+      .transfer(acc2.address, ethers.BigNumber.from(10000000).mul(decimals));
 
     await uni.connect(acc1).claimTokens();
     console.log(
@@ -327,67 +402,5 @@ describe('Token contract', function () {
     // );
   });
 
-  // it("the Claimable rewards accumulates over time")
-
-  // it('create liquidity', async function () {
-  //   console.log(
-  //     'Whale WETH balance',
-  //     await wethContractSigner.balanceOf(whaleSigner.address)
-  //   );
-  //   console.log('whale HAHA Balance', await uni.balanceOf(whaleSigner.address));
-  //   console.log(
-  //     'Owner WETH Balance',
-  //     await wethContract.balanceOf(owner.address)
-  //   );
-  //   console.log('Liquidity Tokens Before', await uni.totalLiquidityTokens());
-
-  //   //=====================================
-
-  //   await uni.transfer(
-  //     whaleSigner.address,
-  //     ethers.BigNumber.from(100000000).mul(decimals),
-  //     { from: owner.address }
-  //   );
-  //   console.log(
-  //     'Liquidity Tokens after transfer 1',
-  //     await uni.totalLiquidityTokens()
-  //   );
-  //   await uni.transfer(
-  //     acc1.address,
-  //     ethers.BigNumber.from(100000000).mul(decimals),
-  //     { from: owner.address }
-  //   );
-  //   console.log(
-  //     'Liquidity Tokens after transfer 2',
-  //     await uni.totalLiquidityTokens()
-  //   );
-  //   await uni.transfer(
-  //     acc2.address,
-  //     ethers.BigNumber.from(100000000).mul(decimals),
-  //     { from: owner.address }
-  //   );
-  //   console.log(
-  //     'Liquidity Tokens after transfer 3',
-  //     await uni.totalLiquidityTokens()
-  //   );
-  //   //  await uni.transfer(acc3.address, ethers.BigNumber.from(10000000).mul(decimals), { from: owner.address });
-  //   //  console.log("Liquidity Tokens after transfer 4", await uni.totalLiquidityTokens());
-
-  //   console.log(
-  //     'after Transfer uniswap pair balance',
-  //     await uni.balanceOf(ROUTER)
-  //   );
-  //   console.log(
-  //     'After transfer whale HAHA Balance',
-  //     await uni.balanceOf(whaleSigner.address)
-  //   );
-  //   console.log(
-  //     'After transfer Owner HAHA Balance',
-  //     await uni.balanceOf(owner.address)
-  //   );
-  //   console.log(
-  //     'After transfer Owner WETH Balance',
-  //     await wethContract.balanceOf(owner.address)
-  //   );
-  // });
+  
 });

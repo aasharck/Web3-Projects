@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
 
 contract HEHE is ERC20, Ownable {
     IUniswapV2Router02 public immutable uniswapV2Router;
@@ -22,7 +23,7 @@ contract HEHE is ERC20, Ownable {
     
     
 
-    uint256 public constant tokenPrice = 0.0001 ether;
+    uint256 public constant tokenPrice = 0.00001 ether;
     uint256 public maxSupply = 1000000000000000 * 10**18; //1 Quadtrillion
 
     //Both the below variables will be set back to 0 once the respective functions are executed.
@@ -41,7 +42,7 @@ contract HEHE is ERC20, Ownable {
     mapping(address => uint256) public lastClaimTime;
     //(address => uint256) public lastClaimedTokens;
 
-    uint256 public minTokensRequiredToAddLiquidity = 100000 * 10**18;
+    uint256 public minTokensRequiredToAddLiquidity = 100000 * 10**18; //Kindly Compute this!
 
     constructor() ERC20("Haha Token", "HEHE") {
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(ROUTER);
@@ -149,6 +150,7 @@ contract HEHE is ERC20, Ownable {
 
         // Swap the firstHalf to ETH or BSC
         uint256 initialBalance = address(this).balance;
+
         swapTokensForEth(firstHalf);
         //Then call addLiquidity function with equal amount of both tokens
         // how much ETH did we just swap into?
@@ -156,6 +158,7 @@ contract HEHE is ERC20, Ownable {
 
         // add liquidity to uniswap
         addLiquidity(secondHalf, newBalance);
+
         totalLiquidityTokens = 0;
     }
 
@@ -172,7 +175,7 @@ contract HEHE is ERC20, Ownable {
             tokenAmount,
             0, // accept any amount of ETH
             path,
-            address(this),
+            address(this), //Will receive the ETH to contract
             block.timestamp
         );
     }
@@ -181,6 +184,7 @@ contract HEHE is ERC20, Ownable {
         // approve token transfer to cover all possible scenarios
         _approve(address(this), address(uniswapV2Router), tokenAmount);
 
+        console.log("ethAmount in addLiquidity %d",ethAmount);
         // add the liquidity
         uniswapV2Router.addLiquidityETH{value: ethAmount}(
             address(this),
@@ -190,6 +194,7 @@ contract HEHE is ERC20, Ownable {
             address(this), //contract's address so that LP tokens will be locked forever
             block.timestamp
         );
+
     }
 
     function showYourClaimableShare() public view returns (uint256) {
@@ -221,11 +226,11 @@ contract HEHE is ERC20, Ownable {
             claimableRewardTokens >= yourTokens,
             "There isn't enough tokens to claim"
         );
-        require(
-            yourTokens > 100 * 10**18,
-            "You must have atleast 100 Tokens to Claim your Reward!"
-        );
-        //lastClaimedTokens[msg.sender] = yourTotalShare;
+        //uncomment the below require statement if you want to put a limit on holders to claim their token
+        // require(
+        //     yourTokens > 100 * 10**18,
+        //     "You must have atleast 100 Tokens to Claim your Reward!"
+        // );
         _transfer(address(this), msg.sender, yourTokens);
         claimableRewardTokens = claimableRewardTokens - yourTokens;
     }
