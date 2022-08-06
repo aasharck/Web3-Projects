@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "hardhat/console.sol";
 
 contract HEHE is ERC20, Ownable {
     IUniswapV2Router02 public immutable uniswapV2Router;
@@ -184,14 +183,13 @@ contract HEHE is ERC20, Ownable {
         // approve token transfer to cover all possible scenarios
         _approve(address(this), address(uniswapV2Router), tokenAmount);
 
-        console.log("ethAmount in addLiquidity %d",ethAmount);
         // add the liquidity
         uniswapV2Router.addLiquidityETH{value: ethAmount}(
             address(this),
             tokenAmount,
             0, // slippage is unavoidable
             0, // slippage is unavoidable
-            address(this), //contract's address so that LP tokens will be locked forever
+            address(0), //LP tokens will be burned so that liquidity is locked forever - You can change this if you want
             block.timestamp
         );
 
@@ -217,7 +215,6 @@ contract HEHE is ERC20, Ownable {
             "You have already claimed the tokens once in the past 30 days"
         );
         //totalRewardTokens = balanceOf(address(this)) - totalLiquidityTokens;
-        lastClaimTime[msg.sender] = block.timestamp;
         uint256 yourTotalShare = ((balanceOf(msg.sender) *
             1000000000000000000) / totalSupply());
         uint256 yourTokens = (yourTotalShare * monthlyRewardTokens) /
@@ -226,6 +223,7 @@ contract HEHE is ERC20, Ownable {
             claimableRewardTokens >= yourTokens,
             "There isn't enough tokens to claim"
         );
+        lastClaimTime[msg.sender] = block.timestamp;
         //uncomment the below require statement if you want to put a limit on holders to claim their token
         // require(
         //     yourTokens > 100 * 10**18,
@@ -244,7 +242,9 @@ contract HEHE is ERC20, Ownable {
 
     receive() external payable {}
 
-
+//This is the function to add liquidity for the first time.
+//Before you add, you will need to go WETH contract and approve this contract with how much ever WETH you want to spend
+//You may also delete this and maybe add liquidity from Uniswap V2 - Make sure it's V2
     function addLiquidityTokens(
         address _tokenA,
         address _tokenB,
