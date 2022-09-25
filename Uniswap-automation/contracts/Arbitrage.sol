@@ -13,6 +13,7 @@ contract Arbitrage{
     address private constant uniROUTER = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff; //Quickswap Polygon
     address private constant COMP = 0xc00e94Cb662C3520282E6f5717214004A7f26888;
     address private constant TOK = 0x3Cef98bb43d732E2F285eE605a8158cDE967D219; 
+    address private constant DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063; 
 
     IUniswapV2Router02 public immutable sushiswapV2Router;
     IUniswapV2Router02 public immutable uniswapV2Router;
@@ -26,7 +27,7 @@ contract Arbitrage{
 
     function getRateUni(address _tok, uint256 _amount) public view returns(uint256){
         address[] memory path = new address[](2);
-        path[0] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270; //WETH
+        path[0] = DAI; //WETH
         path[1] = _tok; //TOK
 
         uint256[] memory rate = uniswapV2Router.getAmountsOut(_amount, path);
@@ -35,7 +36,7 @@ contract Arbitrage{
 
     function getRateSushi(address _tok, uint256 _amount) public view returns(uint256){
         address[] memory path = new address[](2);
-        path[0] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270; //WETH
+        path[0] = DAI; //WETH
         path[1] = _tok; //TOK
 
         uint256[] memory rate = sushiswapV2Router.getAmountsOut(_amount, path);
@@ -46,7 +47,7 @@ contract Arbitrage{
     function sellTOKBuyETHUni(uint256 _amount) public{
         address[] memory path = new address[](2);
         path[0] = TOK; //TOK 
-        path[1] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path[1] = DAI;//WETH
 
         tokContract.approve(address(uniswapV2Router), _amount);
 
@@ -57,7 +58,7 @@ contract Arbitrage{
     function sellTOKBuyETHSushi(uint256 _amount) public{
         address[] memory path = new address[](2);
         path[0] = TOK; //TOK 
-        path[1] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path[1] = DAI;//WETH
 
         tokContract.approve(address(sushiswapV2Router), _amount);
 
@@ -67,7 +68,7 @@ contract Arbitrage{
     //buying TOK by Giving ETH on Uniswap
     function sellETHBuyTokUni() public payable{
         address[] memory path = new address[](2);
-        path[0] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path[0] = DAI;//WETH
         path[1] = TOK; //TOK 
 
         uniswapV2Router.swapExactETHForTokensSupportingFeeOnTransferTokens{value: msg.value}(0, path, msg.sender, block.timestamp);
@@ -76,7 +77,7 @@ contract Arbitrage{
     //buying TOK by Giving ETH on Sushiswap
     function sellETHBuyTokSushi() public payable{
         address[] memory path = new address[](2);
-        path[0] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path[0] = DAI;//WETH
         path[1] = TOK; //TOK 
 
         sushiswapV2Router.swapExactETHForTokensSupportingFeeOnTransferTokens{value: msg.value}(0, path, msg.sender, block.timestamp);
@@ -85,7 +86,7 @@ contract Arbitrage{
     //Call this if price is higher in sushiswap
     function printMoneyV1() external payable{
         address[] memory path = new address[](2);
-        path[0] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path[0] = DAI;//WETH
         path[1] = TOK; //TOK 
         console.log("MATIC BALANCE in CONTRACT BEFORE BUYING DAI=====> ", address(this).balance);
 
@@ -105,7 +106,7 @@ contract Arbitrage{
         
         address[] memory path1 = new address[](2);
         path1[0] = TOK; //TOK 
-        path1[1] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path1[1] = DAI;//WETH
         console.log("DAI in Contract before swap", tokContract.balanceOf(address(this)));
         tokContract.approve(address(sushiswapV2Router), TokBal);
         console.log("===============================");
@@ -125,7 +126,7 @@ contract Arbitrage{
     function printMoneyV2() external payable{
         // uint256 amount = 5 ether;
         address[] memory path = new address[](2);
-        path[0] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path[0] = DAI;//WETH
         path[1] = TOK; //TOK 
 
         sushiswapV2Router.swapExactETHForTokensSupportingFeeOnTransferTokens{value: msg.value}(0, path, address(this), block.timestamp);
@@ -133,7 +134,7 @@ contract Arbitrage{
 
         address[] memory path1 = new address[](2);
         path1[0] = TOK; //TOK 
-        path1[1] = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;//WETH
+        path1[1] = DAI;//WETH
 
         tokContract.approve(address(uniswapV2Router), TokBal);
 

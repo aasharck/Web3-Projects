@@ -16,7 +16,7 @@ describe('Attack Tests',() => {
   const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
   const WMATIC_ADDRESS = '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270'
   const COMP_ADDRESS = '0xc00e94Cb662C3520282E6f5717214004A7f26888'
-  const TOK_ADDRESS = '0x3Cef98bb43d732E2F285eE605a8158cDE967D219';
+  const TOK_ADDRESS = '0xD6DF932A45C0f255f85145f286eA0b292B21C90B';
   let COMP_WHALE = "0xfbe18f066F9583dAc19C88444BC2005c99881E56"
   beforeEach(async () => {
     [owner, attacker, someone] = await ethers.getSigners();
@@ -43,16 +43,17 @@ describe('Attack Tests',() => {
 
     let res = await axios.get("https://token-list.sushi.com/");
     console.log(res.data.tokens.length)
-    for(let i=698; i<res.data.tokens.length; i++){
+    for(let i=680; i<res.data.tokens.length; i++){
         console.log("=========")
         console.log(i)
         let tokAddress = res.data.tokens[i].address
         console.log(tokAddress)
         try {
-            let sushiRate = await arbitrage.getRateSushi(tokAddress)
-            console.log("Sushiswap : 1 MATIC = " + "" + (sushiRate)/10**18 + " " + res.data.tokens[i].name);
-            let quickRate = await arbitrage.getRateUni(tokAddress)
-            console.log("Quickswap : 1 MATIC = " +  "" + (quickRate)/10**18 + " " + res.data.tokens[i].name);
+            let amt = ethers.utils.parseEther('10')
+            let sushiRate = await arbitrage.getRateSushi(tokAddress, amt)
+            console.log("Sushiswap : " + amt/10**18 + " DAI = " + "" + (sushiRate)/10**18 + " " + res.data.tokens[i].name);
+            let quickRate = await arbitrage.getRateUni(tokAddress, amt)
+            console.log("Quickswap : " + amt/10**18 + " DAI = " +  "" + (quickRate)/10**18 + " " + res.data.tokens[i].name);
         } catch (error) {
             continue;
         }
@@ -73,12 +74,12 @@ describe('Attack Tests',() => {
 
   })
 
-  it.skip("Get rate",async () => {
-    let amt = ethers.utils.parseEther('10.0')
+  it("Get rate",async () => {
+    let amt = ethers.utils.parseEther('100')
     let sushiRate = await arbitrage.getRateSushi(TOK_ADDRESS, amt)
-    console.log("Sushiswap : " + amt/10**18 + " MATIC = ", (sushiRate)/10**18);
+    console.log("Sushiswap : " + amt/10**18 + " DAI = ", (sushiRate)/10**18);
     let uniRate = await arbitrage.getRateUni(TOK_ADDRESS, amt)
-    console.log("Quickswap : " + amt/10**18 + " MATIC = ", (uniRate)/10**18);
+    console.log("Quickswap : " + amt/10**18 + " DAI = ", (uniRate)/10**18);
 
   })
 
@@ -124,7 +125,8 @@ describe('Attack Tests',() => {
 
   })
 
-  it("Attack V3", async () => {
+
+  it.skip("Attack V3", async () => {
     console.log("MATIC balance before Arbitrage", (await ethers.provider.getBalance(owner.address))/10**18)
     let amt = ethers.utils.parseEther('10.0')
     // let sushiRate = await arbitrage.getRateSushi(TOK_ADDRESS, amt)
