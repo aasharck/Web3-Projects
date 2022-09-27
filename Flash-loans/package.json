@@ -1,0 +1,9 @@
+{
+  "name": "hardhat-project",
+  "dependencies": {
+    "@aave/core-v3": "^1.16.2",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "dotenv": "^16.0.2",
+    "hardhat": "^2.11.2"
+  }
+}
