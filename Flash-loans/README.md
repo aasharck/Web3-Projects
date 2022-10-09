@@ -1,13 +1,7 @@
 # Sample Hardhat Project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+Need to write a script which constantly checks arbitrage oppurtunities
+ 
+ 1. Check the price ok token1 to token2 in dex1
+ 2. check price of token2 to token1 in dex2
+ 3. compare and see if there's a profit
