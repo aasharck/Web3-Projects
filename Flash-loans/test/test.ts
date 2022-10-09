@@ -59,7 +59,7 @@ describe("Simple Flash Loan Tutorial", function () {
 
   })
 
-  it("Buying some FRAX with UST", async () => {
+  it.skip("Buying some FRAX with UST", async () => {
     const FlashLoanContract: SimpleFlashLoan__factory = await ethers.getContractFactory('SimpleFlashLoan');
     const flashloan: SimpleFlashLoan = await FlashLoanContract.deploy(POOL_ADDRESS_PROVIDER);
     await flashloan.deployed();
@@ -100,5 +100,7 @@ describe("Simple Flash Loan Tutorial", function () {
     );
     console.log("FRAX Balance in Contract", await FraxContract.balanceOf(flashloan.address)/10**18)
   })
+
+
   
 });
