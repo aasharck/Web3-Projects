@@ -2,7 +2,6 @@ import { gql } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import { client } from '../pages/api/api';
 import ProfileStyles from '../styles/Profile.module.css';
-import { Network, Alchemy } from 'alchemy-sdk';
 import axios from 'axios';
 
 const Profile = () => {
@@ -100,22 +99,6 @@ const Profile = () => {
         }
       }`;
 
-  const settings = {
-    apiKey: process.env.REACT_APP_ALCHEMY_API, // Replace with your Alchemy API Key.
-    network: Network.ETH_MAINNET, // Replace with your network.
-  };
-
-  const alchemy = new Alchemy(settings);
-
-  // axios
-  //   .request(options)
-  //   .then(function (response) {
-  //     console.log(response.data);
-  //   })
-  //   .catch(function (error) {
-  //     console.error(error);
-  //   });
-
   const getProfile = async () => {
     try {
       const tx = await client.query({ query: defaultProfile });
@@ -141,6 +124,26 @@ const Profile = () => {
       // const res2 = await res.json();
       console.log(res.data);
       setNfts(res.data.assets);
+
+
+      //Tokens
+      const ethTokenOptions = {
+        method: 'GET',
+        url: `https://deep-index.moralis.io/api/v2/${tx.data.profiles.items[0].ownedBy}/erc20`,
+        params: {chain: 'eth'},
+        headers: {accept: 'application/json', 'X-API-Key': process.env.NEXT_PUBLIC_MORALIS_API}
+      };
+
+      // const polygonTokenOptions = {
+      //   method: 'GET',
+      //   url: 'https://deep-index.moralis.io/api/v2/address/erc20',
+      //   params: {chain: 'polygon'},
+      //   headers: {accept: 'application/json', 'X-API-Key': process.env.MORALIS_API}
+      // };
+
+      const ethTokenRes = await axios.request(ethTokenOptions);
+      console.log(ethTokenRes.data)
+       
     } catch (error) {
       console.log(error);
     }
@@ -170,12 +173,12 @@ const Profile = () => {
           <img
             width='100'
             src={
-              profile?.items[0]?.picture.original &&
+              profile?.items[0]?.picture.uri != null ? profile?.items[0]?.picture.uri : (profile?.items[0]?.picture.original &&
               profile?.items[0]?.picture.original.url.startsWith('ipfs://')
                 ? `http://lens.infura-ipfs.io/ipfs/` +
                   profile?.items[0]?.picture.original.url.slice(7)
                 : profile?.items[0]?.picture?.original?.url ||
-                  'https://placekitten.com/500/500'
+                  'https://placekitten.com/500/500')
             }
             className={ProfileStyles.profileImage}
           />
@@ -192,29 +195,43 @@ const Profile = () => {
               {profile?.items[0]?.stats.totalPosts} <b>Posts</b>
             </div>
           </div>
-          <div class="album py-5 mt-5">
-          <div class="container">
-
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-5">
-            {nfts?.map((nft, i) => {
-                    if (nft.image_preview_url !== null) {
-                      return (
-              <div class="col" key={i}>
-                <div class="card shadow">
-                <img src={nft.image_preview_url} className="bd-placeholder-img card-img-top" width="100%" height="100%" alt='...' />
-                  <div class="card-body">
-                    <p class="card-text text-muted">{nft.name}</p>
-                    
-                  </div>
-                </div>
-              </div>
-);
-}
-})}
+          <div className='album py-5 mt-5'>
+            <div className='container'>
+              <div className='row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 g-lg-5'>
+                {nfts?.map((nft, i) => {
+                  if (nft.image_preview_url !== null) {
+                    return (
+                      <div className='col' key={i}>
+                        <div className='card shadow'>
+                          {nft.image_preview_url.endsWith('webm') ||
+                          nft.image_preview_url.endsWith('mp4') || nft.image_preview_url.endsWith('mov') ? (
+                            <video
+                              src={nft.image_preview_url}
+                              className='bd-placeholder-img card-img-top'
+                              width='100%'
+                              height='100%'
+                              autoPlay
+                            ></video>
+                          ) : (
+                            <img
+                              src={nft.image_preview_url}
+                              className='bd-placeholder-img card-img-top'
+                              width='100%'
+                              height='100%'
+                              alt='...'
+                            />
+                          )}
+                          <div className='card-body'>
+                            <p className='card-text text-muted'>{nft.name}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                })}
               </div>
             </div>
           </div>
-          
         </div>
       </div>
     </div>

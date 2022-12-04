@@ -1,11 +1,5 @@
 import '../styles/globals.css';
 import 'bootstrap/dist/css/bootstrap.css';
-import {
-  wagmiClient,
-  chains,
-  WagmiConfig,
-  RainbowKitProvider,
-} from './utils/walletSetup';
 import AppContext from '../AppContext';
 import { useState } from 'react';
 
@@ -21,11 +15,7 @@ function MyApp({ Component, pageProps }) {
         setToken: setToken,
       }}
     >
-  <WagmiConfig client={wagmiClient}>
-    <RainbowKitProvider chains={chains}>
       <Component {...pageProps} />
-    </RainbowKitProvider>
-  </WagmiConfig>
   </AppContext.Provider>
   )
 }
