@@ -11,6 +11,8 @@
   "dependencies": {
     "@apollo/client": "^3.7.1",
     "@rainbow-me/rainbowkit": "^0.8.0",
+    "alchemy-sdk": "^2.2.3",
+    "axios": "^1.2.0",
     "bootstrap": "^5.2.3",
     "dotenv": "^16.0.3",
     "eslint": "8.28.0",

@@ -7,3 +7,11 @@
     border-radius: 50%;
     
 }
+
+.cardImage{
+    object-fit: contain;
+    overflow: hidden;
+    width: 250px;
+    height: 250px;
+    border-radius: 10px;
+}

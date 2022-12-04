@@ -44,7 +44,7 @@ const Navbar = () => {
     <nav className='navbar navbar-expand-lg navbar-expand-md navbar-light'>
       <div className='container-fluid'>
         <a className='navbar-brand' href='/'>
-          Web3 Social Media
+          LensStats
         </a>
         <button
           className='navbar-toggler'
@@ -62,8 +62,8 @@ const Navbar = () => {
             <Link href='/'>
               <li className='nav-item'>Home</li>
             </Link>
-            <Link href='/profile'>
-              <li className='ms-4 nav-item'>Profile</li>
+            <Link href='/top-profiles'>
+              <li className='ms-4 nav-item'>Top Profiles</li>
             </Link>
           </ul>
           <ConnectButton></ConnectButton>
