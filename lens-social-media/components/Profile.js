@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const Profile = () => {
   const [handle, setHandle] = useState();
-  const [profile, setProfile] = useState();
+  const [profile, setProfile] = useState(null);
   const [nfts, setNfts] = useState([]);
 
   const defaultProfile = gql`query Profiles {
@@ -99,13 +99,15 @@ const Profile = () => {
         }
       }`;
 
-  const getProfile = async () => {
+  const getProfile = async (e) => {
     try {
+      e.preventDefault();
       const tx = await client.query({ query: defaultProfile });
       console.log(tx);
       console.log(tx.data.profiles.items[0].ownedBy);
       setProfile(tx.data.profiles);
 
+      // const metadata = await axios.get(tx.data.profiles.items[0].metadata)
       const options = {
         method: 'GET',
         url: 'https://api.opensea.io/api/v1/assets',
@@ -134,24 +136,85 @@ const Profile = () => {
         headers: {accept: 'application/json', 'X-API-Key': process.env.NEXT_PUBLIC_MORALIS_API}
       };
 
-      // const polygonTokenOptions = {
-      //   method: 'GET',
-      //   url: 'https://deep-index.moralis.io/api/v2/address/erc20',
-      //   params: {chain: 'polygon'},
-      //   headers: {accept: 'application/json', 'X-API-Key': process.env.MORALIS_API}
-      // };
+      const polygonTokenOptions = {
+        method: 'GET',
+        url: `https://deep-index.moralis.io/api/v2/${tx.data.profiles.items[0].ownedBy}/erc20`,
+        params: {chain: 'polygon'},
+        headers: {accept: 'application/json', 'X-API-Key': process.env.NEXT_PUBLIC_MORALIS_API}
+      };
 
       const ethTokenRes = await axios.request(ethTokenOptions);
       console.log(ethTokenRes.data)
+
+      const polygonTokenRes = await axios.request(polygonTokenOptions);
+      console.log(polygonTokenRes.data)
+
+      const allEthTokens = ethTokenRes.data;
+      const allPolTokens = polygonTokenRes.data;
+
+      let netWorthETH=0;
+      for(let i=0; i<allEthTokens.length; i++){
+        if(allEthTokens[i].symbol != null){
+          if(allEthTokens[i].symbol == 'USDT'){
+            netWorthETH = netWorthETH + (allEthTokens[i].balance/10**(allEthTokens[i].decimals));
+          }else{
+            if(allEthTokens[i].logo != null){
+              const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${allEthTokens[i].symbol}USDT`)
+              const tokenValue = (allEthTokens[i].balance/10**(allEthTokens[i].decimals)) * priceOfEachToken.data.price;
+              netWorthETH = netWorthETH + tokenValue;
+            }
+          }
+        }
+      }
+      console.log(netWorthETH);
+
+
+      let netWorthPol=0;
+
+      for(let i=0; i<allPolTokens.length; i++){
+        if(allPolTokens[i].symbol != null){
+          if(allPolTokens[i].symbol == 'USDT'){
+            netWorthPol = netWorthPol + (allPolTokens[i].balance/10**(allPolTokens[i].decimals));
+          }else if(allPolTokens[i].symbol == 'WMATIC'){
+            const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT`)
+            const tokenValue = (allPolTokens[i].balance/10**(allPolTokens[i].decimals)) * priceOfEachToken.data.price;
+            netWorthPol = netWorthPol + tokenValue;
+          }else{
+            if(allPolTokens[i].logo != null){
+              const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${allPolTokens[i].symbol}USDT`)
+              const tokenValue = (allPolTokens[i].balance/10**(allPolTokens[i].decimals)) * priceOfEachToken.data.price;
+              netWorthPol = netWorthPol + tokenValue;
+            }
+          }
+        }
+      }
+      console.log(netWorthPol)
        
     } catch (error) {
       console.log(error);
     }
   };
+
+  const test = async () => {
+    try {
+      const options = {
+        method: 'GET',
+        url: `https://deep-index.moralis.io/api/v2/erc20/${tx.data.profiles.items[0].ownedBy}/price`,
+        params: {chain: 'eth'},
+        headers: {accept: 'application/json', 'X-API-Key': process.env.NEXT_PUBLIC_MORALIS_API}
+      };
+      const tx = await axios.request(options)
+
+      console.log(tx)
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <div>
       <div className={ProfileStyles.profileCard}>
         <div className='text-center'>
+          <form onSubmit={(e) => getProfile(e)}>
           <div className='input-group mb-3'>
             <input
               type='text'
@@ -170,7 +233,9 @@ const Profile = () => {
               Submit
             </button>
           </div>
-          <img
+          </form>
+          <button className='btn btn-danger' onClick={test}>Test</button>
+          {profile !== null && <div className='mt-5'><img
             width='100'
             src={
               profile?.items[0]?.picture.uri != null ? profile?.items[0]?.picture.uri : (profile?.items[0]?.picture.original &&
@@ -182,8 +247,8 @@ const Profile = () => {
             }
             className={ProfileStyles.profileImage}
           />
-          <div className='mt-2'>{handle}</div>
-          <div className='text-muted fs-6'>id: {profile?.items[0]?.id}</div>
+          <div className='mt-2'>{profile?.items[0]?.handle}</div>
+          <div className='text-muted fs-6'>{profile?.items[0]?.bio}</div>
           <div className='row mt-4'>
             <div className='col'>
               {profile?.items[0]?.stats.totalFollowers} <b>Followers</b>
@@ -232,6 +297,8 @@ const Profile = () => {
               </div>
             </div>
           </div>
+          </div>
+}
         </div>
       </div>
     </div>
