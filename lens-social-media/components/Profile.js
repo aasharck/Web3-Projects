@@ -3,11 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { client } from '../pages/api/api';
 import ProfileStyles from '../styles/Profile.module.css';
 import axios from 'axios';
+import { ethers } from 'ethers';
 
 const Profile = () => {
   const [handle, setHandle] = useState();
   const [profile, setProfile] = useState(null);
   const [nfts, setNfts] = useState([]);
+  const [totalNetworth, setTotalNetWorth] = useState();
 
   const defaultProfile = gql`query Profiles {
         profiles(request: { handles: ["${handle}"], limit: 1 }) {
@@ -157,6 +159,18 @@ const Profile = () => {
         if(allEthTokens[i].symbol != null){
           if(allEthTokens[i].symbol == 'USDT'){
             netWorthETH = netWorthETH + (allEthTokens[i].balance/10**(allEthTokens[i].decimals));
+          }else if(allEthTokens[i].symbol == 'WMATIC'){
+            const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT`)
+            const tokenValue = (allEthTokens[i].balance/10**(allEthTokens[i].decimals)) * priceOfEachToken.data.price;
+            netWorthETH = netWorthETH + tokenValue;
+          }else if(allEthTokens[i].symbol == 'WETH'){
+            const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT`)
+            const tokenValue = (allEthTokens[i].balance/10**(allEthTokens[i].decimals)) * priceOfEachToken.data.price;
+            netWorthETH = netWorthETH + tokenValue;
+          }else if(allEthTokens[i].symbol == 'WBTC'){
+            const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=WBTCUSDT`)
+            const tokenValue = (allEthTokens[i].balance/10**(allEthTokens[i].decimals)) * priceOfEachToken.data.price;
+            netWorthETH = netWorthETH + tokenValue;
           }else{
             if(allEthTokens[i].logo != null){
               const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${allEthTokens[i].symbol}USDT`)
@@ -179,6 +193,18 @@ const Profile = () => {
             const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT`)
             const tokenValue = (allPolTokens[i].balance/10**(allPolTokens[i].decimals)) * priceOfEachToken.data.price;
             netWorthPol = netWorthPol + tokenValue;
+          }else if(allPolTokens[i].symbol == 'WETH'){
+            const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT`)
+            const tokenValue = (allPolTokens[i].balance/10**(allPolTokens[i].decimals)) * priceOfEachToken.data.price;
+            netWorthPol = netWorthPol + tokenValue;
+          }else if(allPolTokens[i].symbol == 'WBTC'){
+            const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=WBTCUSDT`)
+            const tokenValue = (allPolTokens[i].balance/10**(allPolTokens[i].decimals)) * priceOfEachToken.data.price;
+            netWorthPol = netWorthPol + tokenValue;
+          }else if(allPolTokens[i].symbol == 'USDC'){
+            const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=USDCUSDT`)
+            const tokenValue = (allPolTokens[i].balance/10**(allPolTokens[i].decimals)) * priceOfEachToken.data.price;
+            netWorthPol = netWorthPol + tokenValue;
           }else{
             if(allPolTokens[i].logo != null){
               const priceOfEachToken = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${allPolTokens[i].symbol}USDT`)
@@ -189,6 +215,37 @@ const Profile = () => {
         }
       }
       console.log(netWorthPol)
+
+      const options2 = {
+        method: 'GET',
+        url: `https://deep-index.moralis.io/api/v2/${tx.data.profiles.items[0].ownedBy}/balance`,
+        params: {chain: 'eth'},
+        headers: {accept: 'application/json', 'X-API-Key': process.env.NEXT_PUBLIC_MORALIS_API}
+      };
+
+      const options3 = {
+        method: 'GET',
+        url: `https://deep-index.moralis.io/api/v2/${tx.data.profiles.items[0].ownedBy}/balance`,
+        params: {chain: 'polygon'},
+        headers: {accept: 'application/json', 'X-API-Key': process.env.NEXT_PUBLIC_MORALIS_API}
+      };
+
+      const ethBalance = await axios.request(options2)
+      const maticBalance = await axios.request(options3)
+
+
+
+      const ethPrice = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT`)
+      const maticPrice = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=MATICUSDT`)
+
+      
+      const ethBalanceInUSD = (ethBalance.data.balance/10**18)*ethPrice.data.price
+      const maticBalanceInUSD = (maticBalance.data.balance/10**18)*maticPrice.data.price
+
+      console.log(ethBalanceInUSD)
+      console.log(maticBalanceInUSD)
+
+      setTotalNetWorth(netWorthETH + netWorthPol + ethBalanceInUSD + maticBalanceInUSD)
        
     } catch (error) {
       console.log(error);
@@ -197,15 +254,10 @@ const Profile = () => {
 
   const test = async () => {
     try {
-      const options = {
-        method: 'GET',
-        url: `https://deep-index.moralis.io/api/v2/erc20/${tx.data.profiles.items[0].ownedBy}/price`,
-        params: {chain: 'eth'},
-        headers: {accept: 'application/json', 'X-API-Key': process.env.NEXT_PUBLIC_MORALIS_API}
-      };
-      const tx = await axios.request(options)
+      const maticPrice = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT`)
+      // const tx = await axios.request(options)
 
-      console.log(tx)
+      console.log(maticPrice)
     } catch (error) {
       console.log(error)
     }
@@ -214,7 +266,9 @@ const Profile = () => {
     <div>
       <div className={ProfileStyles.profileCard}>
         <div className='text-center'>
-          <form onSubmit={(e) => getProfile(e)}>
+          <div className='row'>
+            <div className='col'></div>
+            <div className={`col ${ProfileStyles.inputBox}`}><form onSubmit={(e) => getProfile(e)}>
           <div className='input-group mb-3'>
             <input
               type='text'
@@ -233,8 +287,11 @@ const Profile = () => {
               Submit
             </button>
           </div>
-          </form>
-          <button className='btn btn-danger' onClick={test}>Test</button>
+          </form></div>
+            <div className='col'></div>
+          </div>
+          
+          {/* <button className='btn btn-danger' onClick={test}>Test</button> */}
           {profile !== null && <div className='mt-5'><img
             width='100'
             src={
@@ -250,14 +307,28 @@ const Profile = () => {
           <div className='mt-2'>{profile?.items[0]?.handle}</div>
           <div className='text-muted fs-6'>{profile?.items[0]?.bio}</div>
           <div className='row mt-4'>
-            <div className='col'>
-              {profile?.items[0]?.stats.totalFollowers} <b>Followers</b>
+            <div className={`col-lg-4`} >
             </div>
-            <div className='col'>
-              {profile?.items[0]?.stats.totalFollowing} <b>Following</b>
+            <div className={`col-lg-4`}>
+              <div className='row'>
+                <div className={`col ${ProfileStyles.statCard}`}><b>{profile?.items[0]?.stats.totalFollowers.toLocaleString()} </b><div><span className='small text-muted'>Followers</span></div></div>
+                <div className={`col ${ProfileStyles.statCard}`}><b>{profile?.items[0]?.stats.totalFollowing.toLocaleString()} </b><div><span className='small text-muted'>Following</span></div></div>
+                <div className={`col ${ProfileStyles.statCard}`}><b>{profile?.items[0]?.stats.totalPosts.toLocaleString()} </b><div><span className='small text-muted'>Posts</span></div></div>
+              </div>
             </div>
-            <div className='col'>
-              {profile?.items[0]?.stats.totalPosts} <b>Posts</b>
+            <div className={`col-lg-4`}>
+            </div>
+          </div>
+          <div className='row mt-4'>
+            <div className={`col-lg-4`} >
+            </div>
+            <div className={`col-lg-4`}>
+              <div className='row'>
+                <div className={`col ${ProfileStyles.balanceCard}`}><b>${totalNetworth?.toLocaleString()} </b><div><span className='small text-muted'>Total Balance</span></div></div>
+                <div className={`col ${ProfileStyles.balanceCard}`}><b>{nfts?.length}{nfts?.length == 200 && '+'} </b><div><span className='small text-muted'>NFTs</span></div></div>
+              </div>
+            </div>
+            <div className={`col-lg-4`}>
             </div>
           </div>
           <div className='album py-5 mt-5'>

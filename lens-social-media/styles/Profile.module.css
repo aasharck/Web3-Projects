@@ -1,5 +1,5 @@
 .profileCard{
-    padding: 0 2em;
+    /* padding: 0 0em; */
     margin-top: 5em;
 }
 
@@ -14,4 +14,30 @@
     width: 250px;
     height: 250px;
     border-radius: 10px;
+}
+
+.statCard{
+    /* border: 1px solid rgb(226, 226, 226); */
+    padding: 20px 20px;
+    margin: 0 10px;
+    background-color: rgb(233, 249, 255);
+    border-radius: 15px;
+}
+
+.statCard:hover{
+    border-radius: 15px;
+    background-color: rgb(195, 248, 255);
+}
+
+.balanceCard{
+    padding: 20px 20px;
+    margin: 0 10px;
+    background-color: rgb(233, 249, 255);
+    border-radius: 15px;
+}
+
+.balanceCard:hover{
+    border-radius: 15px;
+    cursor: pointer;
+    background-color: rgb(195, 248, 255);
 }
